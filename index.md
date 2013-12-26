@@ -46,10 +46,10 @@ order to communicate with a database you'll also need a database adapter.
 Here's a list of available database adapters. Look into the adapter's link to
 see installation instructions that are specific to each adapter.
 
-* [SQLite 3](./adapters/sqlite/)
-* [MySQL](./adapters/mysql/)
-* [PostgreSQL](./adapters/postgresql)
-* [MongoDB](./adapters/mongo)
+* [SQLite 3](./sqlite/)
+* [MySQL](./mysql/)
+* [PostgreSQL](./postgresql)
+* [MongoDB](./mongo)
 
 ## Learn by example
 
