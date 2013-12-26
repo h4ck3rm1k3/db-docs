@@ -3,7 +3,7 @@
 ## About
 
 The `upper.io/db/mysql` adapter makes use of the
-`github.com/go-sql-driver/mysql` package, [by julienschmitdt][1].
+`github.com/go-sql-driver/mysql` package, by [Julien Schmidt][1].
 
 ## Installation
 

@@ -2,14 +2,14 @@
 
 ## About
 
-The `upper.io/db/mongo` adapter is based on the `labix.org/v2/mgo` package [by
-gniemeyer][1].
+The `upper.io/db/mongo` adapter is based on the `labix.org/v2/mgo` package by
+[Gustavo Niemeyer][1].
 
 ## Requisites
 
 If you want to install the package with `go get`, you need the [bazaar][2] VCS.
 
-This is how you would install `bzr` in Debian/Ubuntu.
+You can install `bzr` like this:
 
 ```sh
 sudo apt-get install bzr -y

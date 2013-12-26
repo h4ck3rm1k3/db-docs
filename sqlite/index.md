@@ -3,7 +3,7 @@
 ## About
 
 The `upper.io/db/sqlite` adapter is based on the `github.com/mattn/go-sqlite3`
-package [by mattn][1].
+package by [Yasuhiro Matsumoto][1].
 
 ## Installation
 
