@@ -1,24 +1,21 @@
 # upper.io/db
 
-`upper.io/db` is a [Go][2] package with the ability to communicate with many
-different kinds of databases.
+`upper.io/db` project is a [Go][2] package with the ability to communicate with
+many different kinds of database servers with.
 
-`upper.io/db` is able to perform the most common operations on SQL and NoSQL
+This package is able to perform the most common operations on SQL and NoSQL
 databases such as creating, searching, updating and removing items through the
-use of special subpackages, known as adapters.
-
-This package is not a magical fully-featured ORM, it simply allows the
-developer to tell databases what to do and then it tries to stay out of the
-way.
+use of special subpackages, known as **adapters**.
 
 ## Requisites
 
 The `upper.io/db` package depends on:
 
-The [Go compiler and tools][4], of course, version 1.3 is highly recommended.
+The [Go compiler and tools][4], of course. [Version 1.2][5] is highly
+recommended.
 
-The [git][3] version control system. You can install `git` on a Debian-based
-system like this:
+To use `go get` you'll also need the [git][3] version control system. You can
+install `git` on a Debian-based system like this:
 
 ```sh
 sudo apt-get install git -y
@@ -43,16 +40,16 @@ this error install the missing application and try again.
 
 ## Database adapters
 
-Installing the main package is not enough, in order to communicate with a
-database you'll also need a *database adapter*.
+Installing the main package just provides base datatypes and interfaces, but in
+order to communicate with a database you'll also need a database adapter.
 
 Here's a list of available database adapters. Look into the adapter's link to
-see installation instructions specific to each adapter.
+see installation instructions that are specific to each adapter.
 
-* [SQLite 3](./sqlite/)
-* [MySQL](./mysql/)
-* [PostgreSQL](./postgresql)
-* [MongoDB](./mongo)
+* [SQLite 3](./adapters/sqlite/)
+* [MySQL](./adapters/mysql/)
+* [PostgreSQL](./adapters/postgresql)
+* [MongoDB](./adapters/mongo)
 
 ## Learn by example
 
@@ -79,7 +76,7 @@ The sqlite3 program will welcome you with a prompt, like this:
 sqlite>
 ```
 
-From within the sqlite3 prompt, create a demo table with the following code:
+From within the sqlite3 prompt, create a demo table:
 
 ```sql
 CREATE TABLE demo (
@@ -95,8 +92,8 @@ After creating the table, type `.exit` to end the sqlite3 session.
 sqlite> .exit
 ```
 
-Create a `main.go` file and use the following code to import both the
-`upper.io/db` and the recently installed adapter:
+Now you're ready to code. Create a `main.go` file and import both the
+`upper.io/db` and the recently installed adapter `upper.io/db/sqlite`:
 
 ```go
 # main.go
@@ -108,7 +105,7 @@ import (
 )
 ```
 
-Then, configure the database credentials using the `db.Settings` struct. We are
+Then, configure the database credentials using the `db.Settings` struct. We're
 using sqlite3 so the username, password and hostname are not required.
 
 ```go
@@ -129,20 +126,16 @@ You can use the `sess` variable to get a `db.Collection` reference.
 
 ## Working with collections
 
-A collection is a group of items, in the SQL world, collections are known as
-tables. `upper.io/db` considers both SQL tables and NoSQL collections as just
-**collections**.
-
 In order to use and query collections you'll need a collection reference, use
-the `db.Database.Collection()` method on the previously defined `sess`
-variable to get one:
+the `db.Database.Collection()` method on the previously defined `sess` variable
+to get a collection reference:
 
 ```go
 // Pass the table/collection name to get a collection reference.
 col, err = sess.Collection("demo")
 ```
 
-use the collection reference to insert a new row in the database:
+Try to use the collection reference to insert a new row into the database:
 
 ```go
 item = map[string]interface{}{
@@ -222,7 +215,14 @@ func main() {
 }
 ```
 
-compile and run it using `go run main.go`.
+compile and run it, like this:
+
+```sh
+go build main.go
+./main
+```
+
+## Working with result sets
 
 You can use the `db.Collection.Find()` method to search for the recently
 appended item. This method creates a result set, this result set can then be
@@ -243,7 +243,7 @@ err = res.All(&birthdays)
 
 Filling a slice could be expensive if you're working with a lot of rows, if you
 need to optimize memory usage for big result sets looping over the result set
-could be better, use `db.Result.Next()`.
+could be better, use `db.Result.Next()` to fetch one row at a time.
 
 ```go
 var birthday Birhday
@@ -269,19 +269,18 @@ var birthday Birhday
 err = res.One(&birthday)
 ```
 
-## More on result sets
+## Narrowing result sets
 
 Once you have a basic understanding of result sets, you can start using
-conditions and limits to reduce the amount of rows.
+conditions and limits to reduce the amount of rows returned in a query.
 
-The `db.Cond{}` type, can be used to provide conditions, use it as an argument
-for `db.Collection.Find()`.
+Use the `db.Cond{}` type to define conditions for `db.Collection.Find()`.
 
 ```go
 res = col.Find(db.Cond{"user_id": 1})
 ```
 
-If you want to use more than one condition, just provide more keys to the
+If you want to add multiple conditions just provide more keys to the
 `db.Cond{}` map:
 
 ```go
@@ -291,9 +290,10 @@ res = col.Find(db.Cond{
 })
 ```
 
-the provided conditions will be grouped under an AND conjunction.
+provided conditions will be grouped under an *AND* conjunction.
 
-If you want to use an OR instead, the `db.Or{}` type is also available:
+If you want to use an *OR* disjunction instead, the `db.Or{}` type is also
+available. The following code:
 
 ```go
 res = col.Find(db.Or{
@@ -306,38 +306,47 @@ res = col.Find(db.Or{
 })
 ```
 
-Complex AND filters should be delimited by the `db.And{}` type
+means `(email = "user@example.org" OR email = "user@example.com")`.
+
+Complex *AND* filters can be delimited by the `db.And{}` type.
+
+This example:
 
 ```go
 res = col.Find(db.And{
   db.Or{
     db.Cond{
-      "name": "Jhon",
+      "first_name": "Jhon",
     },
     db.Cond{
-      "name": "John",
+      "first_name": "John",
     },
   },
   db.Or{
     db.Cond{
-      "name": "Smith",
+      "last_name": "Smith",
     },
     db.Cond{
-      "name": "Smiht",
+      "last_name": "Smiht",
     },
   },
 })
 ```
 
+means `(first_name = "Jhon" OR first_name = "John") AND (last_name = "Smith" OR
+last_name = "Smiht")`.
+
 The resulting result set can be delimited using `db.Result.Limit()` and
 `db.Result.Skip()` or sorted by value, using the `db.Result.Sort()` function.
 
-This example skips ten rows, counts up to eight rows and sorts the results by
-name (descendent).
+This example:
 
 ```go
 res = col.Find().Skip(10).Limit(8).Sort("-name")
 ```
+
+skips ten rows, counts up to eight rows and sorts the results by name
+(descendent).
 
 If you want to know how many rows the query is returning, use the
 `db.Result.Count()` call.
@@ -346,12 +355,19 @@ If you want to know how many rows the query is returning, use the
 c, err := res.Count()
 ```
 
+When you're done using the result set, remember to close it.
+
+```go
+res.Close()
+```
+
 ## More operations with result sets
 
 Result sets are not only capable of returning rows, they can also be used to
 update or delete all the rows within the given conditions.
 
-If you want to update a whole set of rows, first limit the set.
+If you want to update the whole set of rows you can use the
+`db.Result.Update()` method.
 
 ```go
 res = col.Find(db.Cond{"name": "Old name"})
@@ -370,7 +386,7 @@ res = col.Find(db.Cond{"active": 0})
 res.Remove()
 ```
 
-## Closing results after using
+## Closing result sets
 
 Make sure to use `db.Result.Close()` when finishing using the result set.
 
@@ -383,7 +399,7 @@ res.Close()
 There are many more things you can do with a `db.Database` reference besides
 getting a collection.
 
-You can get a list of all collections within the database:
+For example, you could get a list of all collections within the database:
 
 ```go
 all, err = sess.Collections()
@@ -398,6 +414,8 @@ If you ever need to connect to another database, you can use the
 ```go
 err = sess.Use("another_database")
 ```
+
+# Tips and tricks
 
 ## Transactions
 
@@ -424,7 +442,40 @@ drv = sess.Driver().(*mgo.Session)
 err = drv.Ping()
 ```
 
+# What else?
+
+* See [technical documentation][6] for `upper.io/db` online.
+* The [source code][7] is available at github.
+* You may report bugs to the [issues tracker][8].
+
+# License
+
+> Copyright (c) 2013 José Carlos Nieto, https://menteslibres.net/xiam
+>
+> Permission is hereby granted, free of charge, to any person obtaining
+> a copy of this software and associated documentation files (the
+> "Software"), to deal in the Software without restriction, including
+> without limitation the rights to use, copy, modify, merge, publish,
+> distribute, sublicense, and/or sell copies of the Software, and to
+> permit persons to whom the Software is furnished to do so, subject to
+> the following conditions:
+>
+> The above copyright notice and this permission notice shall be
+> included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+> LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+> OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+> WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 [1]: http://upper.io
 [2]: http://golang.org
 [3]: http://git-scm.com/
 [4]: http://golang.org/doc/install
+[5]: http://blog.golang.org/go12
+[6]: http://godoc.org/upper.io/db
+[7]: https://github.com/upper/db
+[8]: https://github.com/upper/db/issues
