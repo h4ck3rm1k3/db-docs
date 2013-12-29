@@ -30,10 +30,10 @@ Then, you can use the `db.Open()` method to connect to a PostgreSQL server:
 
 ```go
 var settings = db.Settings{
-	Host:     "localhost",	// PostgreSQL server IP or name.
-	Database: "peanuts",		// Database name.
-	User:     "cbrown",			// Optional user name.
-	Password: "snoopy",			// Optional user password.
+  Host:     "localhost",  // PostgreSQL server IP or name.
+  Database: "peanuts",    // Database name.
+  User:     "cbrown",     // Optional user name.
+  Password: "snoopy",     // Optional user password.
 }
 
 sess, err = db.Open("postgresql", settings)

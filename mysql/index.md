@@ -30,10 +30,10 @@ Then, you can use the `db.Open()` method to connect to a MySQL server:
 
 ```go
 var settings = db.Settings{
-	Host:     "localhost",	// MySQL server IP or name.
-	Database: "peanuts",		// Database name.
-	User:     "cbrown",			// Optional user name.
-	Password: "snoopy",			// Optional user password.
+  Host:     "localhost",  // MySQL server IP or name.
+  Database: "peanuts",    // Database name.
+  User:     "cbrown",     // Optional user name.
+  Password: "snoopy",     // Optional user password.
 }
 
 sess, err = db.Open("mysql", settings)

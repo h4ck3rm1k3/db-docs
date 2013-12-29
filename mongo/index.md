@@ -39,10 +39,10 @@ Then, you can use the `db.Open()` method to connect to a MongoDB server:
 
 ```go
 var settings = db.Settings{
-	Host:     "localhost",	// MongoDB server IP or name.
-	Database: "peanuts",		// Database name.
-	User:     "cbrown",			// Optional user name.
-	Password: "snoopy",			// Optional user password.
+  Host:     "localhost",  // MongoDB server IP or name.
+  Database: "peanuts",    // Database name.
+  User:     "cbrown",     // Optional user name.
+  Password: "snoopy",     // Optional user password.
 }
 
 sess, err = db.Open("mongo", settings)
