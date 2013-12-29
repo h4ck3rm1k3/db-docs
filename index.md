@@ -1,11 +1,14 @@
 # upper.io/db
 
-`upper.io/db` project is a [Go][2] package with the ability to communicate with
-many different kinds of database servers.
+The `upper.io/db` project is a [Go][2] package with the ability to communicate
+with different kinds of database servers.
 
 This package is able to perform the most common operations on SQL and NoSQL
 databases such as creating, searching, updating and removing items through the
 use of special subpackages, known as **adapters**.
+
+This is the documentation site, you can also see the [source code
+repository][7] at [github][7].
 
 ## Required software
 
