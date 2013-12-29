@@ -7,15 +7,16 @@ This package is able to perform the most common operations on SQL and NoSQL
 databases such as creating, searching, updating and removing items through the
 use of special subpackages, known as **adapters**.
 
-## Requisites
+## Required software
 
-The `upper.io/db` package depends on:
+The `upper.io/db` package depends on the [Go compiler and tools][4], of course.
+[Version 1.1+][5] is required since the underlying `mgo` driver for the `mongo`
+adapter depends on a method (`reflect.Value.Convert`) introduced in go1.1.
+However, using a lower Go version (down to go1.0.1) could still be possible
+with other adapters.
 
-The [Go compiler and tools][4], of course. [Version 1.2][5] is highly
-recommended.
-
-To use `go get` you'll also need the [git][3] version control system. You can
-install `git` on a Debian-based system like this:
+In order to use `go get` you'll also need the [git][3] version control system.
+You can install `git` on a Debian-based system like this:
 
 ```sh
 sudo apt-get install git -y
@@ -105,8 +106,32 @@ import (
 )
 ```
 
-Then, configure the database credentials using the `db.Settings` struct. We're
-using sqlite3 so the username, password and hostname are not required.
+Then, configure the database credentials using the `db.Settings` struct. This
+struct is used to store authentication settings that `db.Open` will use to
+connect to a database:
+
+```go
+// Connection and authentication data.
+type Settings struct {
+  // Host to connect to. Cannot be used if Socket is specified.
+  Host string
+  // Port to connect to. Cannot be used if Socket is specified.
+  Port int
+  // Name of the database to use.
+  Database string
+  // Authentication user name.
+  User string
+  // Authentication password.
+  Password string
+  // A path of a UNIX socket. Cannot be user if Host is specified.
+  Socket string
+  // Charset of the database.
+  Charset string
+}
+```
+
+In this example we'll be using an authentication-less sqlite3 database so most
+`db.Settings` fields like `User`, `Password` or `Hostname` are not required:
 
 ```go
 # main.go
@@ -115,14 +140,17 @@ var settings = db.Settings{
 }
 ```
 
-Create a `main()` entry and put the instructions below to get a `db.Database`
-reference:
+After configuring the database settings create a `main()` function and use
+`db.Open()` inside. This method creates a connection to a database using an
+adapter. The first argument is the name of the adapter (`upper.io/db/$NAME`),
+the second one is a `db.Settings` variable, such as the `settings` we've
+created above.
 
 ```go
 sess, err = db.Open("sqlite", settings)
 ```
 
-You can use the `sess` variable to get a `db.Collection` reference.
+Now you can use the `sess` variable to get a `db.Collection` reference.
 
 ## Working with collections
 
@@ -435,20 +463,50 @@ sess.End()
 Some situations will require you to use methods that are specific to the
 underlying driver, for example, if you're in the need of using the
 [mgo.Session.Ping](http://godoc.org/labix.org/v2/mgo#Session.Ping) method, you
-can retrieve the underlying `*mgo.Session` and use it to ping.
+can retrieve the underlying `*mgo.Session` as an `interface{}`, cast it with
+the appropriate type and use the `mgo.Session.Ping()` method on it, like this:
 
 ```go
 drv = sess.Driver().(*mgo.Session)
 err = drv.Ping()
 ```
 
-# What else?
+## Method reference
 
-* See [technical documentation][6] for `upper.io/db` online.
-* The [source code][7] is available at github.
-* You may report bugs to the [issues tracker][8].
+You can see the [full method reference][6] for `upper.io/db` at [godoc.org][6].
 
-# License
+## How to contribute
+
+Thanks for taking the time to contribute. There are many ways you can help this
+project:
+
+### Reporting bugs and suggestions
+
+The [source code page][7] at github includes a nice [issue tracker][8], please
+use this interface to report bugs.
+
+### Hacking the source
+
+The [source code page][7] at github includes a nice [issue tracker][8], see the
+issues or create one, then [create a fork][11], hack on your fork and when
+you're done create a [pull request][12], so that the code contribution can get
+merged into the main package. Note that not all contributions can be merged to
+`upper.io/db`, so please be very explicit on how the package users can get the
+greater benefit from your hack.
+
+### Improving the documentation
+
+There is a special [documentation repository][9] at github were you can also
+file [issues][10]. If you find any spot were you would like the docs to be more
+specific, please open an issue to let us know; and if you're in the possibility
+of helping us fixing grammar errors, typos, code examples or even documentation
+issues, please [create a fork][11], edit the documentation files and then
+create a [pull request][12], so that the contribution can be merged into the
+main repository.
+
+## License
+
+The MIT license:
 
 > Copyright (c) 2013 José Carlos Nieto, https://menteslibres.net/xiam
 >
@@ -475,7 +533,11 @@ err = drv.Ping()
 [2]: http://golang.org
 [3]: http://git-scm.com/
 [4]: http://golang.org/doc/install
-[5]: http://blog.golang.org/go12
+[5]: http://golang.org/doc/go1.1
 [6]: http://godoc.org/upper.io/db
 [7]: https://github.com/upper/db
 [8]: https://github.com/upper/db/issues
+[9]: https://github.com/upper/db-docs
+[10]: https://github.com/upper/db-docs/issues
+[11]: https://help.github.com/articles/fork-a-repo
+[12]: https://help.github.com/articles/fork-a-repo#pull-requests
