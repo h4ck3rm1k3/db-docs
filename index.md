@@ -443,9 +443,9 @@ If you ever need to connect to another database, you can use the
 err = sess.Use("another_database")
 ```
 
-# Tips and tricks
+## Tips and tricks
 
-## Transactions
+### Transactions
 
 If the database server you're using supports transactions, you can use the
 `db.Database.Begin()` and `db.Database.End()` methods to delimit transactions:
@@ -458,7 +458,7 @@ col.Append(item)
 sess.End()
 ```
 
-## Working with the underlying driver
+### Working with the underlying driver
 
 Some situations will require you to use methods that are specific to the
 underlying driver, for example, if you're in the need of using the
