@@ -434,7 +434,7 @@ For example, you could get a list of all collections within the database:
 
 ```go
 all, err = sess.Collections()
-for name := range all {
+for _, name := range all {
   fmt.Printf("Got collection %s.\n", name)
 }
 ```
