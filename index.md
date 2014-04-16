@@ -1,33 +1,31 @@
 # upper.io/db
 
-The `upper.io/db` project is a [Go][2] package with the ability to communicate
-with different kinds of database servers.
+`upper.io/db` is a [Go][2] package that allows developers to store and retrive
+data to and from different kinds of databases through the use of adapters that
+wrap well supported database drivers.
 
-This package is able to perform the most common operations on SQL and NoSQL
-databases such as creating, searching, updating and removing items through the
-use of special subpackages, known as **adapters**.
+`upper.io/db` is not an ORM, but you may not need one at all:
 
 This is the documentation site, you can also see the [source code
 repository][7] at [github][7].
 
 ## Required software
 
-The `upper.io/db` package depends on the [Go compiler and tools][4], of course.
-[Version 1.1+][5] is required since the underlying `mgo` driver for the `mongo`
-adapter depends on a method (`reflect.Value.Convert`) introduced in go1.1.
-However, using a lower Go version (down to go1.0.1) could still be possible
-with other adapters.
+The `upper.io/db` package depends on the [Go compiler and tools][4]. [Version
+1.1+][5] is preferred since the underlying `mgo` driver for the `mongo` adapter
+depends on a method (`reflect.Value.Convert`) introduced in go1.1.  However,
+using a lower Go version (down to go1.0.1) could still be possible with other
+adapters.
 
-In order to use `go get` you'll also need the [git][3] version control system.
-You can install `git` on a Debian-based system like this:
-
-```sh
-sudo apt-get install git -y
-```
+In order to use `go get` to fetch and install [Go][4] packages, you'll also
+need the [git][3] version control system. Please refer to the [git][3] project
+site for specific instructions on how to install it in your operative system.
 
 ### Getting the package
 
-You can download and install the `upper.io/db` package using `go get`:
+
+Once you got [Go][4] installed, you can download and install the `upper.io/db`
+package using `go get`:
 
 ```sh
 go get upper.io/db
@@ -39,25 +37,27 @@ go get upper.io/db
 package upper.io/db: exec: "git": executable file not found in $PATH
 ```
 
-it means that a required program is missing, `git` in this case. To overcome
-this error install the missing application and try again.
+it means that a required program is missing, `git` in this case. To fix this
+error install the missing application and try again.
 
 ## Database adapters
 
-Installing the main package just provides base datatypes and interfaces, but in
-order to communicate with a database you'll also need a database adapter.
+Installing the main package just provides base datatypes and interfaces but in
+order to actually communicate with a database you'll also need a database
+adapter.
 
 Here's a list of available database adapters. Look into the adapter's link to
 see installation instructions that are specific to each adapter.
 
-* [SQLite 3](./db/sqlite/)
 * [MySQL](./db/mysql/)
-* [PostgreSQL](./db/postgresql)
 * [MongoDB](./db/mongo)
+* [PostgreSQL](./db/postgresql)
+* [QL](./db/ql)
+* [SQLite](./db/sqlite/)
 
 ## Learn by example
 
-Through this example, we'll be featuring the SQLite3 database and the `sqlite`
+Through this example we'll be featuring the SQLite3 database and the `sqlite`
 adapter.
 
 Fire up a terminal and check if the `sqlite3` command is installed. If the
@@ -116,44 +116,49 @@ connect to a database:
 ```go
 // Connection and authentication data.
 type Settings struct {
-  // Host to connect to. Cannot be used if Socket is specified.
+  // Database server hostname or IP. Leave blank if using unix sockets.
   Host string
-  // Port to connect to. Cannot be used if Socket is specified.
+  // Database server port. Leave blank if using unix sockets.
   Port int
-  // Name of the database to use.
+  // Name of the database.
   Database string
-  // Authentication user name.
+  // Username for authentication.
   User string
-  // Authentication password.
+  // Password for authentication.
   Password string
-  // A path of a UNIX socket. Cannot be user if Host is specified.
+  // A path of a UNIX socket file. Leave blank if using host and port.
   Socket string
-  // Charset of the database.
+  // Database charset.
   Charset string
 }
 ```
 
-In this example we'll be using an authentication-less sqlite3 database so most
-`db.Settings` fields like `User`, `Password` or `Hostname` are not required:
+In this example we'll be using a sqlite3 database with no authentication so
+most `db.Settings` fields like `User`, `Password` or `Hostname` are not
+required:
 
 ```go
 # main.go
 var settings = db.Settings{
+  // A SQLite database is a plain file.
   Database: `example.db`,
 }
 ```
 
 After configuring the database settings create a `main()` function and use
-`db.Open()` inside. This method creates a connection to a database using an
-adapter. The first argument is the name of the adapter (`upper.io/db/$NAME`),
-the second one is a `db.Settings` variable, such as the `settings` we've
-created above.
+`db.Open()` inside. This method creates a connection to a database using the
+given adapter. The first argument must be the adapter's name
+(`upper.io/db/$NAME`), the second one should be a `db.Settings` variable, such
+as the `settings` we've created above.
 
 ```go
+// Using db.Open() to open the sqlite database specified by the settings
+// variable.
 sess, err = db.Open("sqlite", settings)
 ```
 
-Now you can use the `sess` variable to get a `db.Collection` reference.
+At this point, you can use the `sess` variable to get a `db.Collection`
+reference.
 
 ## Working with collections
 
@@ -169,6 +174,8 @@ col, err = sess.Collection("demo")
 Try to use the collection reference to insert a new row into the database:
 
 ```go
+// You can use maps or structs, in this case we'll be appending a new roe
+// defined by a map.
 item = map[string]interface{}{
   "first_name": "Hayao",
   "last_name": "Miyazaki",
@@ -183,6 +190,8 @@ struct datatype for the demo table we've created before, then you should define
 each column as a field of the struct:
 
 ```go
+// Use the "field" tag to match database column names with Go struct property
+// names.
 type Demo struct {
   FirstName string `field:"first_name"`
   LastName string `field:"last_name"`
@@ -194,6 +203,7 @@ And instead of using a map, we can insert a `Demo{}` value with the
 `db.Collection.Append()` call.
 
 ```go
+// Inserting a struct is as easy as inserting a map.
 item = Demo{
   "Hayao",
   "Miyazaki",
@@ -260,6 +270,7 @@ appended item. This method creates a result set, this result set can then be
 iterated or dumped to a pointer or a pointer to slice.
 
 ```go
+// SELECT * FROM people WHERE last_name = "Miyazaki"
 res = col.Find(db.Cond{"last_name": "Miyazaki"})
 ```
 
@@ -268,6 +279,8 @@ results into a slice, providing a pointer to a slice of structs or maps, as in
 the following example.
 
 ```go
+// Define birthdays as an array of Birthday{} and fetch the contents of the
+// result set into it using `db.Result.All()`.
 var birthdays []Birthday
 err = res.All(&birthdays)
 ```
@@ -279,6 +292,7 @@ could be better, use `db.Result.Next()` to fetch one row at a time.
 ```go
 var birthday Birhday
 for {
+  // Walking over the result set.
   err = res.Next(&birthday)
   if err == nil {
     // No error happened.
@@ -308,6 +322,11 @@ conditions and limits to reduce the amount of rows returned in a query.
 Use the `db.Cond{}` type to define conditions for `db.Collection.Find()`.
 
 ```go
+type db.Cond map[string]interface{}
+```
+
+```go
+// SELECT * FROM users WHERE user_id = 1
 res = col.Find(db.Cond{"user_id": 1})
 ```
 
@@ -315,6 +334,7 @@ If you want to add multiple conditions just provide more keys to the
 `db.Cond{}` map:
 
 ```go
+// SELECT * FROM users where user_id = 1 AND email = "ser@example.org"
 res = col.Find(db.Cond{
   "user_id": 1,
   "email": "user@example.org",
@@ -327,6 +347,7 @@ If you want to use an *OR* disjunction instead, the `db.Or{}` type is also
 available. The following code:
 
 ```go
+// SELECT * FROM users WHERE email = "user@example.org" OR email = "user@example.com"
 res = col.Find(db.Or{
   db.Cond{
     "email": "user@example.org",
@@ -336,8 +357,6 @@ res = col.Find(db.Or{
   }
 })
 ```
-
-means `(email = "user@example.org" OR email = "user@example.com")`.
 
 Complex *AND* filters can be delimited by the `db.And{}` type.
 
@@ -450,7 +469,7 @@ err = sess.Use("another_database")
 
 ### Transactions
 
-If the database server you're using supports transactions, you can use the
+If the database you're using supports transactions, you can use the
 `db.Database.Begin()` and `db.Database.End()` methods to delimit transactions:
 
 ```go
@@ -474,6 +493,13 @@ drv = sess.Driver().(*mgo.Session)
 err = drv.Ping()
 ```
 
+or this:
+
+```go
+drv = sess.Driver().(*sql.DB)
+rows, err = drv.Query("SELECT name FROM users WHERE age=?", age)
+```
+
 ## Method reference
 
 You can see the [full method reference][6] for `upper.io/db` at [godoc.org][6].
@@ -490,7 +516,7 @@ use this interface to report bugs.
 
 ### Hacking the source
 
-The [source code page][7] at github includes a nice [issue tracker][8], see the
+The [source code page][7] at github includes an [issue tracker][8], see the
 issues or create one, then [create a fork][11], hack on your fork and when
 you're done create a [pull request][12], so that the code contribution can get
 merged into the main package. Note that not all contributions can be merged to
@@ -511,7 +537,7 @@ main repository.
 
 The MIT license:
 
-> Copyright (c) 2013 José Carlos Nieto, https://menteslibres.net/xiam
+> Copyright (c) 2013-2014 José Carlos Nieto, https://menteslibres.net/xiam
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
@@ -532,7 +558,7 @@ The MIT license:
 > OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 > WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[1]: http://upper.io
+[1]: https://upper.io
 [2]: http://golang.org
 [3]: http://git-scm.com/
 [4]: http://golang.org/doc/install
