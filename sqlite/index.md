@@ -15,7 +15,7 @@ sudo apt-get install gcc
 
 # FreeBSD
 sudo pkg install gcc
-sudo ln -s /usr/local/bin/gcc42 /usr/local/bin/gcc
+sudo ln -s /usr/local/bin/gcc47 /usr/local/bin/gcc
 ```
 
 Otherwise, you'll end with an error like this:
