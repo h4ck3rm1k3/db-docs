@@ -58,8 +58,8 @@ sess, err = db.Open("sqlite", settings)
 
 ## Example
 
-The following structure would create a table with "name" and "born" columns.
-Use the `sqlite3` command line tool to create a `example.db` database file.
+The following SQL statement creates a table with "name" and "born"
+columns.
 
 ```sql
 --' example.sql
@@ -70,6 +70,14 @@ CREATE TABLE "birthdays" (
   "name" varchar(50) DEFAULT NULL,
   "born" varchar(12) DEFAULT NULL
 );
+```
+
+Use the `sqlite3` command line tool to create a `example.db`
+database file.
+
+```
+rm -f example.db
+cat example.sql | sqlite3 example.db
 ```
 
 The Go code below will add some rows to the "birthdays" table and then will
@@ -164,11 +172,9 @@ func main() {
 }
 ```
 
-Creating database structure and running the example:
+Running the example above:
 
 ```
-rm -f example.db
-cat example.sql | sqlite3 example.db
 go run main.go
 ```
 
