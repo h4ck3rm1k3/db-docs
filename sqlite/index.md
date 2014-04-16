@@ -1,15 +1,14 @@
 # SQLite adapter for upper.io/db
 
 The `upper.io/db/sqlite` adapter for the [SQLite3 database][3] is a wrapper of
-the `github.com/mattn/go-sqlite3` sql driver written by [Yasuhiro
-Matsumoto][1].
+the `github.com/mattn/go-sqlite3` driver written by [Yasuhiro Matsumoto][1].
 
 ## Installation
 
-This package makes use of cgo, so in order to compile and install it you'll
-also need a C compiler, such as `gcc`:
+This package uses cgo, so in order to compile and install it you'll also need a
+C compiler, such as `gcc`:
 
-```go
+```
 # Debian
 sudo apt-get install gcc
 
@@ -28,7 +27,7 @@ exec: "gcc": executable file not found in $PATH
 Once `gcc`is installed, use `go get` to download, compile and install the
 sqlite adapter.
 
-```go
+```
 go get upper.io/db/sqlite
 ```
 
@@ -167,7 +166,7 @@ func main() {
 
 Creating database structure and running the example:
 
-```sh
+```
 rm -f example.db
 cat example.sql | sqlite3 example.db
 go run main.go
@@ -175,7 +174,7 @@ go run main.go
 
 Expected output:
 
-```sh
+```
 Hayao Miyazaki was born in January 5, 1941.
 Nobuo Uematsu was born in March 21, 1959.
 Hironobu Sakaguchi was born in November 25, 1962.
