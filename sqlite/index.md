@@ -1,21 +1,27 @@
 # SQLite adapter for upper.io/db
 
-The `upper.io/db/sqlite` adapter for the [SQLite3 database][3] is based on the
-`github.com/mattn/go-sqlite3` package by [Yasuhiro Matsumoto][1].
+The `upper.io/db/sqlite` adapter for the [SQLite3 database][3] is a wrapper of
+the `github.com/mattn/go-sqlite3` sql driver written by [Yasuhiro
+Matsumoto][1].
 
 ## Installation
 
 This package makes use of cgo, so in order to compile and install it you'll
-also need a C compiler, like `gcc`:
+also need a C compiler, such as `gcc`:
 
 ```go
-apt-get install gcc
+# Debian
+sudo apt-get install gcc
+
+# FreeBSD
+sudo pkg install gcc
+sudo ln -s /usr/local/bin/gcc42 /usr/local/bin/gcc
 ```
 
 Otherwise, you'll end with an error like this:
 
 ```
-# github.com/xiam/gosqlite3
+# github.com/mattn/go-sqlite3
 exec: "gcc": executable file not found in $PATH
 ```
 
@@ -54,5 +60,3 @@ sess, err = db.Open("sqlite", settings)
 [1]: https://github.com/mattn/go-sqlite3
 [2]: http://golang.org/doc/effective_go.html#blank
 [3]: http://www.sqlite.org/
-[]
-[]
