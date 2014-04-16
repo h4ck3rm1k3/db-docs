@@ -1,12 +1,12 @@
 # upper.io/db/mongo
 
-The `upper.io/db/mongo` adapter for [MongoDB][3] makes use of the
-`labix.org/v2/mgo` package by [Gustavo Niemeyer][1].
+The `upper.io/db/mongo` adapter for [MongoDB][3] wraps the `labix.org/v2/mgo`
+driver written by [Gustavo Niemeyer][1].
 
 ## Installation
 
 If you want to install the package with `go get`, you'll need the [bazaar][2]
-VCS.
+version control system.
 
 You can install `bzr` like this:
 
