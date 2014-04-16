@@ -10,13 +10,13 @@ version control system.
 
 You can install `bzr` like this:
 
-```sh
+```
 sudo apt-get install bzr -y
 ```
 
 After bazaar is installed, use `go get` to download and install the adapter.
 
-```go
+```
 go get upper.io/db/mongo
 ```
 
@@ -46,6 +46,116 @@ var settings = db.Settings{
 }
 
 sess, err = db.Open("mongo", settings)
+```
+
+## Example
+
+The Go code below will add some rows to the "birthdays" collection and then
+will print the same rows that were inserted.
+
+```go
+// example.go
+
+package main
+
+import (
+  "fmt"
+  "log"
+  "time"
+  "upper.io/db"         // Imports the main db package.
+  _ "upper.io/db/mongo" // Imports the mongo adapter.
+)
+
+var settings = db.Settings{
+  Database: `upperio_tests`, // Database name.
+  Host:     `127.0.0.1`,     // Using TCP.
+}
+
+type Birthday struct {
+  // Maps the "Name" property to the "name" column of the "birthdays" table.
+  Name string `bson:"name"`
+  // Maps the "Born" property to the "born" column of the "birthdays" table.
+  Born time.Time `bson:"born"`
+}
+
+func main() {
+
+  // Attemping to establish a connection to the database.
+  sess, err := db.Open("mongo", settings)
+
+  if err != nil {
+    log.Fatalf("db.Open(): %q\n", err)
+  }
+
+  // Remember to close the database session.
+  defer sess.Close()
+
+  // Pointing to the "birthdays" table.
+  birthdayCollection, err := sess.Collection("birthdays")
+
+  if err != nil {
+    if err != db.ErrCollectionDoesNotExists {
+      log.Fatalf("Could not use collection: %q\n", err)
+    }
+  } else {
+    err = birthdayCollection.Truncate()
+
+    if err != nil {
+      log.Fatalf("Truncate(): %q\n", err)
+    }
+  }
+
+  // Inserting some rows into the "birthdays" table.
+
+  birthdayCollection.Append(Birthday{
+    Name: "Hayao Miyazaki",
+    Born: time.Date(1941, time.January, 5, 0, 0, 0, 0, time.UTC),
+  })
+
+  birthdayCollection.Append(Birthday{
+    Name: "Nobuo Uematsu",
+    Born: time.Date(1959, time.March, 21, 0, 0, 0, 0, time.UTC),
+  })
+
+  birthdayCollection.Append(Birthday{
+    Name: "Hironobu Sakaguchi",
+    Born: time.Date(1962, time.November, 25, 0, 0, 0, 0, time.UTC),
+  })
+
+  // Let's query for the results we've just inserted.
+  var res db.Result
+
+  res = birthdayCollection.Find()
+
+  var birthdays []Birthday
+
+  // Query all results and fill the birthdays variable with them.
+  err = res.All(&birthdays)
+
+  if err != nil {
+    log.Fatalf("res.All(): %q\n", err)
+  }
+
+  // Printing to stdout.
+  for _, birthday := range birthdays {
+    fmt.Printf("%s was born in %s.\n", birthday.Name, birthday.Born.Format("January 2, 2006"))
+  }
+
+}
+```
+
+Running the example above:
+
+```
+go run main.go
+```
+
+Expected output:
+
+```
+Hayao Miyazaki was born in January 5, 1941.
+Nobuo Uematsu was born in March 21, 1959.
+Hironobu Sakaguchi was born in November 25, 1962.
 ```
 
 [1]: http://labix.org/v2/mgo
