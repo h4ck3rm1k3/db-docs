@@ -1,7 +1,7 @@
 # upper.io/db/postgresql
 
 The `upper.io/db/postgresql` adapter for [PostgreSQL][2] is based on the
-`github.com/lib/pq` package by [Blake Mizerany][1].
+`github.com/lib/pq` driver by [Blake Mizerany][1].
 
 ## Installation
 
