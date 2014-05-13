@@ -1,8 +1,7 @@
 # upper.io/db
 
-`upper.io/db` is a [Go][2] package that allows developers to store and retrive
-data to and from different kinds of databases through the use of adapters that
-wrap well supported database drivers.
+`upper.io/db` provides a compatible CRUD interface for MongoDB, SQLite,
+MySQL, QL and PostgreSQL in [Go][2] programs.
 
 `upper.io/db` is not an ORM, but you may not need one at all:
 
@@ -13,7 +12,7 @@ res = col.Find(db.Cond{"name": "Max"}).Skip(1).Limit(2).Sort("-input")
 err = res.All(&people)
 ```
 
-This is the documentation site, you can also see the [source code
+This is the documentation site, you may also see the [source code
 repository][7] at [github][7].
 
 ## Required software
@@ -197,12 +196,12 @@ struct datatype for the demo table we've created before, then you should define
 each column as a field of the struct:
 
 ```go
-// Use the "field" tag to match database column names with Go struct property
+// Use the "db" tag to match database column names with Go struct property
 // names.
 type Demo struct {
-  FirstName string `field:"first_name"`
-  LastName string `field:"last_name"`
-  Bio string `field:"bio"`
+  FirstName string `db:"first_name"`
+  LastName  string `db:"last_name"`
+  Bio       string `db:"bio,omitempty"`
 }
 ```
 
@@ -237,9 +236,9 @@ var settings = db.Settings{
 }
 
 type Demo struct {
-  FirstName string `field:"first_name"`
-  LastName string `field:"last_name"`
-  Bio string `field:"bio"`
+  FirstName string `db:"first_name"`
+  LastName  string `db:"last_name"`
+  Bio       string `db:"bio"`
 }
 
 func main() {

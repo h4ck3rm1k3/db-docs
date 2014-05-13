@@ -86,9 +86,9 @@ var settings = db.Settings{
 
 type Birthday struct {
   // Maps the "Name" property to the "name" column of the "birthdays" table.
-  Name string `field:"name"`
+  Name string `db:"name"`
   // Maps the "Born" property to the "born" column of the "birthdays" table.
-  Born time.Time `field:"born"`
+  Born time.Time `db:"born"`
 }
 
 func main() {
