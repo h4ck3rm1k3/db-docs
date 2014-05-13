@@ -1,7 +1,8 @@
 # upper.io/db
 
-`upper.io/db` provides a compatible CRUD interface for MongoDB, SQLite,
-MySQL, QL and PostgreSQL in [Go][2] programs.
+The `upper.io/db` package for [Go][2] provides a single CRUD interface for
+MongoDB, SQLite, MySQL, QL and PostgreSQL databases through the use of adapters
+that wrap well known database drivers.
 
 `upper.io/db` is not an ORM, but you may not need one at all:
 
