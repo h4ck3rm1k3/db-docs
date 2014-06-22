@@ -1,20 +1,37 @@
 # upper.io/db
 
-The `upper.io/db` package for [Go][2] provides a single CRUD interface for
-MongoDB, SQLite, MySQL, QL and PostgreSQL databases through the use of adapters
-that wrap well known database drivers.
+The `upper.io/db` package for [Go][2] provides a single interface for
+interacting with different data sources through the use of adapters that wrap
+mature database drivers.
 
-`upper.io/db` is not an ORM, but you may not need one at all:
+Usage:
+
+```go
+import(
+  // Main package.
+  "upper.io/db"
+  // PostgreSQL adapter.
+  "upper.io/db/postgresql"
+)
+```
+
+As of today, `upper.io/db` fully supports MySQL, PostgreSQL and SQLite (CRUD +
+Transactions) and provides partial support for MongoDB and QL (CRUD only).
 
 ```go
 // This code works the same for all supported databases.
 var people []Person
-res = col.Find(db.Cond{"name": "Max"}).Skip(1).Limit(2).Sort("-input")
+res = col.Find(db.Cond{"name": "Max"}).Limit(2).Sort("-input")
 err = res.All(&people)
 ```
 
-This is the documentation site, you may also see the [source code
-repository][7] at [github][7].
+`upper.io/db` is not and ORM, and thus it does not impose any hard restrictions
+on data structures nor automatic table creation, index creation or additional
+magic, so having a good understanding of the database you're working on is
+required.
+
+This is the documentation site, you may also find useful information in the
+[source code repository][7] at [github][7].
 
 ## Required software
 
@@ -28,8 +45,7 @@ In order to use `go get` to fetch and install [Go][4] packages, you'll also
 need the [git][3] version control system. Please refer to the [git][3] project
 site for specific instructions on how to install it in your operative system.
 
-### Getting the package
-
+### Installation
 
 Once you got [Go][4] installed, you can download and install the `upper.io/db`
 package using `go get`:
@@ -49,7 +65,7 @@ error install the missing application and try again.
 
 ## Database adapters
 
-Installing the main package just provides base datatypes and interfaces but in
+Installing the main package just provides base structures and interfaces but in
 order to actually communicate with a database you'll also need a database
 adapter.
 
@@ -64,8 +80,7 @@ see installation instructions that are specific to each adapter.
 
 ## Learn by example
 
-Through this example we'll be featuring the SQLite3 database and the `sqlite`
-adapter.
+Through this example we'll be featuring the usage of the SQLite adapter.
 
 Fire up a terminal and check if the `sqlite3` command is installed. If the
 program is missing install it like this:
@@ -103,6 +118,8 @@ After creating the table, type `.exit` to end the sqlite3 session.
 sqlite> .exit
 ```
 
+### Connection setup
+
 Now you're ready to code. Create a `main.go` file and import both the
 `upper.io/db` and the recently installed adapter `upper.io/db/sqlite`:
 
@@ -112,7 +129,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/sqlite"
+  "upper.io/db/sqlite"
 )
 ```
 
@@ -129,9 +146,9 @@ type Settings struct {
   Port int
   // Name of the database.
   Database string
-  // Username for authentication.
+  // Username (for authentication).
   User string
-  // Password for authentication.
+  // Password (for authentication).
   Password string
   // A path of a UNIX socket file. Leave blank if using host and port.
   Socket string
@@ -161,7 +178,7 @@ as the `settings` we've created above.
 ```go
 // Using db.Open() to open the sqlite database specified by the settings
 // variable.
-sess, err = db.Open("sqlite", settings)
+sess, err = db.Open(sqlite.Adapter, settings)
 ```
 
 At this point, you can use the `sess` variable to get a `db.Collection`
@@ -169,19 +186,26 @@ reference.
 
 ## Working with collections
 
+Collections are sets of objects of the same class. SQL tables and NoSQL
+collections are both known as just "collections" in the `upper.io/db` context.
+
+### Getting a collection reference
+
 In order to use and query collections you'll need a collection reference, use
 the `db.Database.Collection()` method on the previously defined `sess` variable
-to get a collection reference:
+in order to get a collection reference:
 
 ```go
 // Pass the table/collection name to get a collection reference.
 col, err = sess.Collection("demo")
 ```
 
-Try to use the collection reference to insert a new row into the database:
+### Creating objects (The C in CRUD)
+
+Try to use the collection reference to insert a new item into the database:
 
 ```go
-// You can use maps or structs, in this case we'll be appending a new roe
+// You can use maps or structs, in this case we'll be appending a new row
 // defined by a map.
 item = map[string]interface{}{
   "first_name": "Hayao",
@@ -192,9 +216,9 @@ col.Append(item)
 ```
 
 Using structs to define the format of collection items is not strictly required
-(we could use maps too), but it is recommended. If you'd like to create a
-struct datatype for the demo table we've created before, then you should define
-each column as a field of the struct:
+(we could use maps too), but it's recommended. If you'd like to create a struct
+datatype for the demo table we've created before, then you should define each
+column as a field of the struct:
 
 ```go
 // Use the "db" tag to match database column names with Go struct property
@@ -228,8 +252,9 @@ that looks like this:
 package main
 
 import (
+  "log"
   "upper.io/db"
-  _ "upper.io/db/sqlite"
+  "upper.io/db/sqlite"
 )
 
 var settings = db.Settings{
@@ -243,22 +268,32 @@ type Demo struct {
 }
 
 func main() {
-  sess, err := db.Open("sqlite", settings)
+  var err error
+  var sess db.Database
+  var col db.Collection
+
+  sess, err = db.Open(sqlite.Adapter, settings)
 
   if err != nil {
-    panic(err.Error())
+    log.Fatal(err)
   }
 
-  col, err := sess.Collection("demo")
+  defer sess.Close()
 
-  col.Append(Demo{
-    "Hayao",
-    "Miyazaki",
-    "Japanese film director.",
+  col, err = sess.Collection("demo")
+
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  err = col.Append(Demo{
+    FirstName: "Hayao",
+    LastName: "Miyazaki",
+    Bio: "Japanese film director.",
   })
 
   if err != nil {
-    panic(err.Error())
+    log.Fatal(err)
   }
 }
 ```
@@ -270,16 +305,153 @@ go build main.go
 ./main
 ```
 
+## Mapping structs to columns
+
+While `upper.io/db` will work fine with Go maps, using structs is the
+recommended way for mapping table rows or collection elements into Go values,
+as they provide more control and customization on how columns are mapped.
+
+### Defining a struct
+
+You can map database column names to struct fields in a similar way the
+`encoding/json` package does.
+
+In this example:
+
+```go
+type Foo struct {
+  Id      int64   // Will match the column named "id".
+  Title   string  // Will match the column named "title".
+  private bool    // Will be ignored, as it's not an exported field.
+}
+```
+
+The `Id` and `Title` fields begin with an uppercase letter, so they are
+exported fields. Exported fields of a struct are be mapped to table columns
+according to their name (letter case and underscores won't matter), while the
+`private` field is unexported and will be ignored by `upper.io/db`.
+
+`upper.io/db` assumes that a field will be matched to one and only one column,
+trying to map multiple fields to the same column is currently not supported.
+
+### Custom column names and field options (usage of the `db` tag).
+
+If the name of the exported field is different from the name of the column, you
+could use a `db` tag in the field definition to bind it to a custom column
+name:
+
+```go
+type Foo struct {
+  Id      int64
+  Title   string `db:"foo_title"` // Will be mapped to the "foo_title" column.
+  private bool
+}
+```
+
+Besides specifying column names, the `db` tag could be used to pass additional
+options for fields. You can specify more than one option by separating them
+using commas:
+
+```go
+type Foo struct {
+  Id      int64
+  Title   string `db:"title,opt1,opt2,..."`
+  private bool
+}
+```
+
+### Skipping empty fields
+
+If you'd like to avoid using an exported field in a statement when it's empty,
+you can pass the `omitempty` option to the `db` tag, like this:
+
+```go
+type Foo struct {
+  Id      int64  `db:"id,omitempty"`  // Will be skipped when Id == 0.
+  Title   string `db:"foo_title"`
+  private bool
+}
+```
+
+### Ignoring an exported field
+
+If you need to skip an exported field completely you can set its name to "-"
+using a `db` tag:
+
+```go
+type Foo struct {
+  Id            int64
+  Title         string
+  private       bool
+  IgnoredField  string `db:"-"`
+}
+```
+
+You can have as name fields named "-" as you need:
+
+```go
+type Foo struct {
+  Id            int64
+  Title         string
+  private       bool
+  IgnoredField  string `db:"-"`
+  IgnoredField1 string `db:"-"`
+  IgnoredField2 string `db:"-"`
+}
+```
+
+### Embedded structs
+
+If you need to embed one struct into another and you'd like the two of them
+being considered as if they were part of the same struct (at lest on
+`upper.io/db` context), you can pass the `inline` option to the field name,
+like this:
+
+```go
+type Foo struct {
+  Id      int64
+  Title   string `db:"-"`
+  private bool
+}
+```
+
+```go
+type Bar struct {
+  EmbeddedFoo Foo     `db:",inline"`
+  ExtraField  string  `db:"extra_field"`
+}
+```
+
+Embedding with `inline` also works for anonymous fields:
+
+```go
+type Foo struct {
+  Id      int64
+  Title   string `db:"-"`
+  private bool
+}
+```
+
+```go
+type Bar struct {
+  Foo         `db:",inline"`
+  ExtraField  string `db:"extra_field"`
+}
+```
+
 ## Working with result sets
 
-You can use the `db.Collection.Find()` method to search for the recently
-appended item. This method creates a result set, this result set can then be
-iterated or dumped to a pointer or a pointer to slice.
+You can use the `db.Collection.Find()` to define result sets, you can use a
+result set to search for the recently appended item. Result sets can be
+iterated (`db.Collection.Next()`), dumped to a pointer (`db.Result.One()`) or
+dumped to a pointer to slice (`db.Result.All()`).
 
 ```go
 // SELECT * FROM people WHERE last_name = "Miyazaki"
 res = col.Find(db.Cond{"last_name": "Miyazaki"})
 ```
+
+## Retrieving objects (The R in CRUD)
 
 Once you have a result set (`res` in this example), you can choose to fetch
 results into a slice, providing a pointer to a slice of structs or maps, as in
@@ -311,6 +483,8 @@ for {
     return res
   }
 }
+// Remember to close the result set when using db.Result.Next()
+res.Close()
 ```
 
 If you need only one element of the result set, the `db.Result.One()` method
@@ -348,9 +522,9 @@ res = col.Find(db.Cond{
 })
 ```
 
-provided conditions will be grouped under an *AND* conjunction.
+provided conditions will be grouped under an *AND* conjunction, by default.
 
-If you want to use an *OR* disjunction instead, the `db.Or{}` type is also
+If you want to use an *OR* disjunction instead, the `db.Or{}` type is
 available. The following code:
 
 ```go
@@ -364,6 +538,8 @@ res = col.Find(db.Or{
   }
 })
 ```
+
+uses *OR* disjunction instead of *AND*.
 
 Complex *AND* filters can be delimited by the `db.And{}` type.
 
@@ -393,8 +569,11 @@ res = col.Find(db.And{
 means `(first_name = "Jhon" OR first_name = "John") AND (last_name = "Smith" OR
 last_name = "Smiht")`.
 
-The resulting result set can be delimited using `db.Result.Limit()` and
-`db.Result.Skip()` or sorted by value, using the `db.Result.Sort()` function.
+## Result sets are chainable
+
+A `col.Find()` instruction returns a `db.Result` interface, and some methods of
+`db.Result` return the same interface, so they can be called in a chainable
+fashion.
 
 This example:
 
@@ -405,12 +584,14 @@ res = col.Find().Skip(10).Limit(8).Sort("-name")
 skips ten rows, counts up to eight rows and sorts the results by name
 (descendent).
 
-If you want to know how many rows the query is returning, use the
+If you want to know how many rows the query will return, use the
 `db.Result.Count()` call.
 
 ```go
 c, err := res.Count()
 ```
+
+## Closing result sets
 
 When you're done using the result set, remember to close it.
 
@@ -421,18 +602,21 @@ res.Close()
 ## More operations with result sets
 
 Result sets are not only capable of returning rows, they can also be used to
-update or delete all the rows within the given conditions.
+update or delete all the rows that match the given conditions.
+
+### Updating objects (The U in CRUD)
 
 If you want to update the whole set of rows you can use the
 `db.Result.Update()` method.
 
 ```go
 res = col.Find(db.Cond{"name": "Old name"})
-
 err = res.Update(map[string]interface{}{
   "name": "New name",
 })
 ```
+
+### Deleting objects (The D in CRUD)
 
 If you want to delete a set of rows, use the `db.Result.Remove()` call on a
 result set.
@@ -474,17 +658,55 @@ err = sess.Use("another_database")
 
 ## Tips and tricks
 
+### Logging
+
+You can enable the logging of generated SQL statements and errors to standard
+output by using the `UPPERIO_DB_DEBUG` environment variable:
+
+```console
+UPPERIO_DB_DEBUG=1 ./go-program
+```
+
+You can also use this environment variable when running tests.
+
+```console
+cd $GOPATH/src/upper.io/db/sqlite
+UPPERIO_DB_DEBUG=1 go test
+...
+2014/06/22 05:15:20
+  SQL: SELECT "tbl_name" FROM "sqlite_master" WHERE ("type" = 'table')
+
+2014/06/22 05:15:20
+  SQL: SELECT "tbl_name" FROM "sqlite_master" WHERE ("type" = ? AND "tbl_name" = ?)
+  ARG: [table artist]
+...
+```
+
 ### Transactions
 
-If the database you're using supports transactions, you can use the
-`db.Database.Begin()` and `db.Database.End()` methods to delimit transactions:
+You can use the `db.Database.Transaction()` function to start a transaction (if
+the database adapter supports such feature). This will return a clone of the
+session (type `db.Tx`) with two added functions: `db.Tx.Commit()` and
+`db.Tx.Rollback()` that you can use to save the transaction or to abort it.
 
 ```go
-sess.Begin()
-col.Append(item)
-...
-col.Append(item)
-sess.End()
+var tx db.Tx
+if tx, err = sess.Transaction(); err != nil {
+  log.Fatal(err)
+}
+
+var artist db.Collection
+if artist, err = tx.Collection("artist"); err != nil {
+  log.Fatal(err)
+}
+
+if _, err = artist.Append(row); err != nil {
+  log.Fatal(err)
+}
+
+if err = tx.Commit(); err != nil {
+  log.Fatal(err)
+}
 ```
 
 ### Working with the underlying driver
@@ -507,6 +729,8 @@ drv = sess.Driver().(*sql.DB)
 rows, err = drv.Query("SELECT name FROM users WHERE age=?", age)
 ```
 
+if you're using a SQL adapter.
+
 ## Method reference
 
 You can see the [full method reference][6] for `upper.io/db` at [godoc.org][6].
@@ -527,8 +751,8 @@ The [source code page][7] at github includes an [issue tracker][8], see the
 issues or create one, then [create a fork][11], hack on your fork and when
 you're done create a [pull request][12], so that the code contribution can get
 merged into the main package. Note that not all contributions can be merged to
-`upper.io/db`, so please be very explicit on how the package users can get the
-greater benefit from your hack.
+`upper.io/db`, so please be very explicit on justifying the proposed change and
+on explaining how the package users can get the greater benefit from your hack.
 
 ### Improving the documentation
 

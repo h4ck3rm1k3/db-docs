@@ -1,7 +1,9 @@
-# upper.io/db/mysql
+# MySQL adapter for upper.io/db
 
-The `upper.io/db/mysql` adapter for [MySQL][2] wraps the
+The `mysql` adapter for [MySQL][2] wraps the
 `github.com/go-sql-driver/mysql` driver written by [Julien Schmidt][1].
+
+This adapter supports CRUD and transactions.
 
 ## Installation
 
@@ -14,7 +16,6 @@ go get upper.io/db/mysql
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/mysql` packages.
-Note that the adapter must be imported to the [blank identifier][2].
 
 ```go
 # main.go
@@ -22,7 +23,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/mysql"
+  "upper.io/db/mysql"
 )
 ```
 
@@ -36,7 +37,7 @@ var settings = db.Settings{
   Password: "snoopy",     // Optional user password.
 }
 
-sess, err = db.Open("mysql", settings)
+sess, err = db.Open(mysql.Adapter, settings)
 ```
 
 ## Example
@@ -73,7 +74,7 @@ import (
   "fmt"
   "time"
   "upper.io/db"         // Imports the main db package.
-  _ "upper.io/db/mysql" // Improts the mysql adapter.
+  "upper.io/db/mysql"   // Imports the mysql adapter.
 )
 
 var settings = db.Settings{
@@ -93,7 +94,7 @@ type Birthday struct {
 func main() {
 
   // Attemping to establish a connection to the database.
-  sess, err := db.Open("mysql", settings)
+  sess, err := db.Open(mysql.Adapter, settings)
 
   if err != nil {
     log.Fatalf("db.Open(): %q\n", err)

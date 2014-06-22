@@ -1,7 +1,9 @@
-# upper.io/db/postgresql
+# PostgreSQL adapter for upper.io/db
 
 The `upper.io/db/postgresql` adapter for [PostgreSQL][2] is based on the
 `github.com/lib/pq` driver by [Blake Mizerany][1].
+
+This adapter supports CRUD, transactions, multiple sources and raw SQL.
 
 ## Installation
 
@@ -14,7 +16,7 @@ go get upper.io/db/postgresql
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/postgresql`
-packages.  Note that the adapter must be imported to the [blank identifier][2].
+packages.
 
 ```go
 # main.go
@@ -22,7 +24,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/postgresql"
+  "upper.io/db/postgresql"
 )
 ```
 
@@ -36,7 +38,7 @@ var settings = db.Settings{
   Password: "snoopy",     // Optional user password.
 }
 
-sess, err = db.Open("postgresql", settings)
+sess, err = db.Open(postgresql.Adapter, settings)
 ```
 
 ## Example
@@ -94,7 +96,7 @@ type Birthday struct {
 func main() {
 
   // Attemping to establish a connection to the database.
-  sess, err := db.Open("postgresql", settings)
+  sess, err := db.Open(postgresql.Adapter, settings)
 
   if err != nil {
     log.Fatalf("db.Open(): %q\n", err)
@@ -168,6 +170,81 @@ Expected output:
 Hayao Miyazaki was born in January 5, 1941.
 Nobuo Uematsu was born in March 21, 1959.
 Hironobu Sakaguchi was born in November 25, 1962.
+```
+
+## Unique adapter features
+
+### Multiple sources
+
+Querying from multiple tables is possible using `db.Database.Collection()`,
+just pass the name of all the tables separating them by commas. You can also
+use the `AS` keyword to define an alias that you could later use in conditions
+to refer to the original table.
+
+```
+var err error
+var artistPublication db.Collection
+
+// Querying from two tables.
+artistPublication, err = sess.Collection(`artist AS a, publication AS p`)
+
+if err != nil {
+  log.Fatal(err)
+}
+
+res := artistPublication.Find(
+  // Use db.Raw{} to enclose statements that you'd like to pass without
+  // filtering.
+  db.Raw{`a.id = p.author_id`},
+).Select(
+  `p.id`, // We defined "p" as an alias for "publication".
+  `p.title as publication_title`, // The "AS" is recognized as column alias.
+  db.Raw{`a.name AS artist_name`},
+)
+
+type artistPublication_t struct {
+  Id               int64  `db:"id"`
+  PublicationTitle string `db:"publication_title"`
+  ArtistName       string `db:"artist_name"`
+}
+
+all := []artistPublication_t{}
+
+if err = res.All(&all); err != nil {
+  log.Fatal(err)
+}
+```
+
+### Raw SQL
+
+## Additional notes
+
+### Auto-incremental keys (serial)
+
+If you want to use auto-increment (or serial) keys with PostgreSQL database,
+you must define the column type as `SERIAL`, like this:
+
+```sql
+CREATE TABLE foo(
+  id SERIAL,
+  title VARCHAR
+);
+```
+
+And you must provide the `omitempty` option in the `db` tag when defining the
+struct:
+
+```go
+type Foo struct {
+  Id    int64   `db:"id,omitempty"`
+  Title string  `db:"title"`
+}
+```
+
+Otherwise, you'll end up with an error like this:
+
+```
+ERROR:  duplicate key violates unique constraint "id"
 ```
 
 [1]: https://github.com/lib/pq

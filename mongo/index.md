@@ -1,7 +1,14 @@
-# upper.io/db/mongo
+# MongoDB adapter for upper.io/db
 
-The `upper.io/db/mongo` adapter for [MongoDB][3] wraps the `labix.org/v2/mgo`
+The `mongo` adapter for [MongoDB][3] wraps the `labix.org/v2/mgo`
 driver written by [Gustavo Niemeyer][1].
+
+This adapter supports CRUD but does not currently supports transactions.
+
+## Known limitations
+
+* Does not support transactions.
+* Does not support the `db` tag. You must use [bson][4] tags instead.
 
 ## Installation
 
@@ -23,7 +30,6 @@ go get upper.io/db/mongo
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/mongo` packages.
-Note that the adapter must be imported to the [blank identifier][2].
 
 ```go
 # main.go
@@ -31,7 +37,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/mongo"
+  "upper.io/db/mongo"
 )
 ```
 
@@ -45,7 +51,7 @@ var settings = db.Settings{
   Password: "snoopy",     // Optional user password.
 }
 
-sess, err = db.Open("mongo", settings)
+sess, err = db.Open(mongo.Adapter, settings)
 ```
 
 ## Example
@@ -63,7 +69,7 @@ import (
   "log"
   "time"
   "upper.io/db"         // Imports the main db package.
-  _ "upper.io/db/mongo" // Imports the mongo adapter.
+  "upper.io/db/mongo"   // Imports the mongo adapter.
 )
 
 var settings = db.Settings{
@@ -81,7 +87,7 @@ type Birthday struct {
 func main() {
 
   // Attemping to establish a connection to the database.
-  sess, err := db.Open("mongo", settings)
+  sess, err := db.Open(mongo.Adapter, settings)
 
   if err != nil {
     log.Fatalf("db.Open(): %q\n", err)
@@ -161,3 +167,4 @@ Hironobu Sakaguchi was born in November 25, 1962.
 [1]: http://labix.org/v2/mgo
 [2]: http://bazaar.canonical.com/en/
 [3]: http://www.mongodb.org/
+[4]: http://labix.org/gobson

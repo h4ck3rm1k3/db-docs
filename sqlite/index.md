@@ -3,6 +3,8 @@
 The `upper.io/db/sqlite` adapter for the [SQLite3 database][3] is a wrapper of
 the `github.com/mattn/go-sqlite3` driver written by [Yasuhiro Matsumoto][1].
 
+This adapter supports CRUD and transactions.
+
 ## Installation
 
 This package uses cgo, so in order to compile and install it you'll also need a
@@ -42,7 +44,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/sqlite"
+  "upper.io/db/sqlite"
 )
 ```
 
@@ -53,7 +55,7 @@ var settings = db.Settings{
   Database: `/path/to/example.db`, // Path to a sqlite3 database file.
 }
 
-sess, err = db.Open("sqlite", settings)
+sess, err = db.Open(sqlite.Adapter, settings)
 ```
 
 ## Example
@@ -93,7 +95,7 @@ import (
   "log"
   "time"
   "upper.io/db"          // Imports the main db package.
-  _ "upper.io/db/sqlite" // Imports the sqlite adapter.
+  "upper.io/db/sqlite"   // Imports the sqlite adapter.
 )
 
 var settings = db.Settings{
@@ -110,7 +112,7 @@ type Birthday struct {
 func main() {
 
   // Attemping to open the "example.db" database file.
-  sess, err := db.Open("sqlite", settings)
+  sess, err := db.Open(sqlite.Adapter, settings)
 
   if err != nil {
     log.Fatalf("db.Open(): %q\n", err)

@@ -3,6 +3,12 @@
 The `upper.io/db/ql` adapter for the [QL][1] is a wrapper of the
 `github.com/cznic/ql/ql` driver written by [Jan Mercl][1].
 
+This adapter supports CRUD but does not currently supports transactions.
+
+## Known limitations
+
+* Does not support transactions.
+
 ## Installation
 
 Use `go get` to download and install the adapter:
@@ -14,7 +20,6 @@ go get upper.io/db/ql
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/ql` packages.
-Note that the adapter must be imported to the [blank identifier][2].
 
 ```go
 # main.go
@@ -22,7 +27,7 @@ package main
 
 import (
   "upper.io/db"
-  _ "upper.io/db/ql"
+  "upper.io/db/ql"
 )
 ```
 
@@ -33,7 +38,7 @@ var settings = db.Settings{
   Database: `/path/to/example.db`, // Path to a QL database file.
 }
 
-sess, err = db.Open("ql", settings)
+sess, err = db.Open(ql.Adapter, settings)
 ```
 
 ## Example
@@ -73,7 +78,7 @@ import (
 	"log"
 	"time"
 	"upper.io/db"      // Imports the main db package.
-	_ "upper.io/db/ql" // Imports the ql adapter.
+	"upper.io/db/ql"   // Imports the ql adapter.
 )
 
 var settings = db.Settings{
@@ -90,7 +95,7 @@ type Birthday struct {
 func main() {
 
 	// Attemping to open the "example.db" database file.
-	sess, err := db.Open("ql", settings)
+	sess, err := db.Open(ql.Adapter, settings)
 
 	if err != nil {
 		log.Fatalf("db.Open(): %q\n", err)
