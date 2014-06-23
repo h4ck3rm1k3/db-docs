@@ -18,7 +18,8 @@ import(
 As of today, `upper.io/db` fully supports MySQL, PostgreSQL and SQLite (CRUD +
 Transactions) and provides partial support for MongoDB and QL (CRUD only).
 
-The following code example pulls data from a collection into the people array.
+The following code example pulls data from a collection and populates the
+`people` array with results of the query.
 
 ```go
 // This code works the same for all supported databases.
@@ -28,9 +29,8 @@ err = res.All(&people)
 ```
 
 `upper.io/db` is not and ORM, and thus it does not impose any hard restrictions
-on data structures nor automatic table creation, index creation or additional
-magic, so having a good understanding of the database you're working on is
-required.
+on data structures nor automatic table creation, indexing or additional magic,
+so having a good understanding of the database you're working on is required.
 
 This is the documentation site, you may also find useful information in the
 [source code repository][7] at [github][7].
@@ -39,7 +39,7 @@ This is the documentation site, you may also find useful information in the
 
 The `upper.io/db` package depends on the [Go compiler and tools][4]. [Version
 1.1+][5] is preferred since the underlying `mgo` driver for the `mongo` adapter
-depends on a method (`reflect.Value.Convert`) introduced in go1.1.  However,
+depends on a method (`reflect.Value.Convert()`) introduced in go1.1.  However,
 using a lower Go version (down to go1.0.1) could still be possible with other
 adapters.
 
@@ -92,19 +92,19 @@ program is missing install it like this:
 sudo apt-get install sqlite3 -y
 ```
 
-Then, run the sqlite3 command and create a `test.db` database:
+Then, run the `sqlite3` command and create a `test.db` database:
 
 ```sh
 sqlite3 test.db
 ```
 
-The sqlite3 program will welcome you with a prompt, like this:
+The `sqlite3` program will welcome you with a prompt, like this:
 
 ```
 sqlite>
 ```
 
-From within the sqlite3 prompt, create a demo table:
+From within the `sqlite3` prompt, create a demo table:
 
 ```sql
 CREATE TABLE demo (
@@ -114,7 +114,7 @@ CREATE TABLE demo (
 );
 ```
 
-After creating the table, type `.exit` to end the sqlite3 session.
+After creating the table, type `.exit` to end the `sqlite3` session.
 
 ```
 sqlite> .exit
@@ -135,16 +135,18 @@ import (
 )
 ```
 
-Then, configure the database credentials using the `db.Settings` struct. This
-struct is used to store authentication settings that `db.Open` will use to
+Then, configure the database credentials using the `db.Settings{}` struct. This
+struct is used to store authentication settings that `db.Open()` will use to
 connect to a database:
 
 ```go
 // Connection and authentication data.
 type Settings struct {
-  // Database server hostname or IP. Leave blank if using unix sockets.
+  // Database server hostname or IP. Leave blank if
+  // using unix sockets.
   Host string
-  // Database server port. Leave blank if using unix sockets.
+  // Database server port. Leave blank if using
+  // unix sockets.
   Port int
   // Name of the database.
   Database string
@@ -152,15 +154,16 @@ type Settings struct {
   User string
   // Password (for authentication).
   Password string
-  // A path of a UNIX socket file. Leave blank if using host and port.
+  // A path of a UNIX socket file. Leave blank if
+  // using host and port.
   Socket string
   // Database charset.
   Charset string
 }
 ```
 
-In this example we'll be using a sqlite3 database with no authentication so
-most `db.Settings` fields like `User`, `Password` or `Hostname` are not
+In this example we'll be using a SQLite3 database with no authentication so
+most `db.Settings{}` fields like `User`, `Password` or `Hostname` are not
 required:
 
 ```go
@@ -174,16 +177,16 @@ var settings = db.Settings{
 After configuring the database settings create a `main()` function and use
 `db.Open()` inside. This method creates a connection to a database using the
 given adapter. The first argument must be the adapter's name
-(`upper.io/db/$NAME`), the second one should be a `db.Settings` variable, such
-as the `settings` we've created above.
+(`upper.io/db/$NAME`), the second one should be a `db.Settings{}` variable,
+such as the `settings` we've created above.
 
 ```go
-// Using db.Open() to open the sqlite database specified by the settings
-// variable.
+// Using db.Open() to open the sqlite database
+// specified by the settings variable.
 sess, err = db.Open(sqlite.Adapter, settings)
 ```
 
-At this point, you can use the `sess` variable to get a `db.Collection`
+At this point, you can use the `sess` variable to get a `db.Collection{}`
 reference.
 
 ## Working with collections
@@ -198,17 +201,18 @@ the `db.Database.Collection()` method on the previously defined `sess` variable
 in order to get a collection reference:
 
 ```go
-// Pass the table/collection name to get a collection reference.
+// Pass the table/collection name to get a collection
+// reference.
 col, err = sess.Collection("demo")
 ```
 
 ### Creating objects (The C in CRUD)
 
-Try to use the collection reference to insert a new item into the database:
+Use the `col` variable and a map to insert a new item into the collection:
 
 ```go
-// You can use maps or structs, in this case we'll be appending a new row
-// defined by a map.
+// You can use maps or structs, in this case we'll
+// be appending a new row defined by a map.
 item = map[string]interface{}{
   "first_name": "Hayao",
   "last_name": "Miyazaki",
@@ -223,8 +227,8 @@ datatype for the demo table we've created before, then you should define each
 column as a field of the struct:
 
 ```go
-// Use the "db" tag to match database column names with Go struct property
-// names.
+// Use the "db" tag to match database column names with Go
+// struct property names.
 type Demo struct {
   FirstName string `db:"first_name"`
   LastName  string `db:"last_name"`
@@ -322,14 +326,17 @@ In this example:
 
 ```go
 type Foo struct {
-  Id      int64   // Will match the column named "id".
-  Title   string  // Will match the column named "title".
-  private bool    // Will be ignored, as it's not an exported field.
+  // Will match the column named "id".
+  Id      int64
+  // Will match the column named "title".
+  Title   string
+  // Will be ignored, as it's not an exported field.
+  private bool
 }
 ```
 
 The `Id` and `Title` fields begin with an uppercase letter, so they are
-exported fields. Exported fields of a struct are be mapped to table columns
+exported fields. Exported fields of a struct are mapped to table columns
 according to their name (letter case and underscores won't matter), while the
 `private` field is unexported and will be ignored by `upper.io/db`.
 
@@ -345,7 +352,8 @@ name:
 ```go
 type Foo struct {
   Id      int64
-  Title   string `db:"foo_title"` // Will be mapped to the "foo_title" column.
+  // Will be mapped to the "foo_title" column.
+  Title   string `db:"foo_title"`
   private bool
 }
 ```
@@ -369,7 +377,8 @@ you can pass the `omitempty` option to the `db` tag, like this:
 
 ```go
 type Foo struct {
-  Id      int64  `db:"id,omitempty"`  // Will be skipped when Id == 0.
+  // Will be skipped when Id == 0.
+  Id      int64  `db:"id,omitempty"`
   Title   string `db:"foo_title"`
   private bool
 }
@@ -377,8 +386,8 @@ type Foo struct {
 
 ### Ignoring an exported field
 
-If you need to skip an exported field completely you can set its name to "-"
-using a `db` tag:
+If you need to skip an exported field you can set its name to "-" using a `db`
+tag:
 
 ```go
 type Foo struct {
@@ -389,7 +398,7 @@ type Foo struct {
 }
 ```
 
-You can have as name fields named "-" as you need:
+You can have as name fields named `"-"` as you need:
 
 ```go
 type Foo struct {
@@ -405,7 +414,7 @@ type Foo struct {
 ### Embedded structs
 
 If you need to embed one struct into another and you'd like the two of them
-being considered as if they were part of the same struct (at lest on
+being considered as if they were part of the same struct (at least on
 `upper.io/db` context), you can pass the `inline` option to the field name,
 like this:
 
@@ -467,8 +476,8 @@ err = res.All(&birthdays)
 ```
 
 Filling an array could be expensive if you're working with a lot of rows, if
-you need to optimize memory usage for big result sets looping over the result
-set could be better, use `db.Result.Next()` to fetch one row at a time.
+you're working with big result sets looping over one result at a time would
+perform better. Use `db.Result.Next()` to fetch one row at a time:
 
 ```go
 var birthday Birhday
@@ -500,7 +509,8 @@ err = res.One(&birthday)
 ## Narrowing result sets
 
 Once you have a basic understanding of result sets, you can start using
-conditions and limits to reduce the amount of rows returned in a query.
+conditions, limits and offsets to reduce the amount of rows returned in a
+query.
 
 Use the `db.Cond{}` type to define conditions for `db.Collection.Find()`.
 
@@ -517,7 +527,8 @@ If you want to add multiple conditions just provide more keys to the
 `db.Cond{}` map:
 
 ```go
-// SELECT * FROM users where user_id = 1 AND email = "ser@example.org"
+// SELECT * FROM users where user_id = 1
+//  AND email = "ser@example.org"
 res = col.Find(db.Cond{
   "user_id": 1,
   "email": "user@example.org",
@@ -530,7 +541,8 @@ If you want to use an *OR* disjunction instead, the `db.Or{}` type is
 available. The following code:
 
 ```go
-// SELECT * FROM users WHERE email = "user@example.org" OR email = "user@example.com"
+// SELECT * FROM users WHERE
+// email = "user@example.org" OR email = "user@example.com"
 res = col.Find(db.Or{
   db.Cond{
     "email": "user@example.org",
@@ -573,8 +585,8 @@ last_name = "Smiht")`.
 
 ## Result sets are chainable
 
-A `col.Find()` instruction returns a `db.Result` interface, and some methods of
-`db.Result` return the same interface, so they can be called in a chainable
+A `col.Find()` instruction returns a `db.Result{}` interface, and some methods of
+`db.Result{}` return the same interface, so they can be called in a chainable
 fashion.
 
 This example:
@@ -586,7 +598,7 @@ res = col.Find().Skip(10).Limit(8).Sort("-name")
 skips ten rows, counts up to eight rows and sorts the results by name
 (descendent).
 
-If you want to know how many items does the set holds, use the
+If you want to know how many items does the set hold, use the
 `db.Result.Count()` call:
 
 ```go
@@ -642,7 +654,7 @@ res.Close()
 
 ## Working with databases
 
-There are many more things you can do with a `db.Database` reference besides
+There are many more things you can do with a `db.Database{}` reference besides
 getting a collection.
 
 For example, you could get a list of all collections within the database:
@@ -654,8 +666,7 @@ for _, name := range all {
 }
 ```
 
-If you ever need to connect to another database, you can use the
-`db.Database.Use` method
+If you need to switch databases, you can use the `db.Database.Use()` method
 
 ```go
 err = sess.Use("another_database")
@@ -691,7 +702,7 @@ UPPERIO_DB_DEBUG=1 go test
 
 You can use the `db.Database.Transaction()` function to start a transaction (if
 the database adapter supports such feature). This will return a clone of the
-session (type `db.Tx`) with two added functions: `db.Tx.Commit()` and
+session (type `db.Tx{}`) with two added functions: `db.Tx.Commit()` and
 `db.Tx.Rollback()` that you can use to save the transaction or to abort it.
 
 ```go
