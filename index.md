@@ -469,8 +469,9 @@ results into an array, providing a pointer to an array of structs or maps, as
 in the following example.
 
 ```go
-// Define birthdays as an array of Birthday{} and fetch the contents of the
-// result set into it using `db.Result.All()`.
+// Define birthdays as an array of Birthday{} and fetch
+// the contents of the result set into it using
+// `db.Result.All()`.
 var birthdays []Birthday
 err = res.All(&birthdays)
 ```
@@ -494,7 +495,8 @@ for {
     return res
   }
 }
-// Remember to close the result set when using db.Result.Next()
+// Remember to close the result set when using
+// db.Result.Next()
 res.Close()
 ```
 
@@ -542,7 +544,8 @@ available. The following code:
 
 ```go
 // SELECT * FROM users WHERE
-// email = "user@example.org" OR email = "user@example.com"
+// email = "user@example.org"
+// OR email = "user@example.com"
 res = col.Find(db.Or{
   db.Cond{
     "email": "user@example.org",
