@@ -186,7 +186,7 @@ var err error
 var artistPublication db.Collection
 
 // Querying from two tables.
-artistPublication, err = sess.Collection(`artist AS a, publication AS p`)
+artistPublication, err = sess.Collection(`artist AS a`, `publication AS p`)
 
 if err != nil {
   log.Fatal(err)
@@ -215,9 +215,10 @@ if err = res.All(&all); err != nil {
 }
 ```
 
-### Raw SQL
-
-## Additional notes
+If you're working with more than one collection, the first one you pass becomes
+your primary collection. Calls to `db.Collection.Append()`,
+`db.Collection.Remove()` and `db.Collection.Update()` will be performed on your
+primary collection.
 
 ### Auto-incremental keys (serial)
 
@@ -226,12 +227,12 @@ you must define the column type as `SERIAL`, like this:
 
 ```sql
 CREATE TABLE foo(
-  id SERIAL,
+  id SERIAL PRIMARY KEY,
   title VARCHAR
 );
 ```
 
-And you must provide the `omitempty` option in the `db` tag when defining the
+Also, you must provide the `omitempty` option in the `db` tag when defining the
 struct:
 
 ```go
@@ -246,6 +247,75 @@ Otherwise, you'll end up with an error like this:
 ```
 ERROR:  duplicate key violates unique constraint "id"
 ```
+
+In order for the ID to be returned by `db.Collection.Append()`, the `SERIAL` field
+must be set as `PRIMARY KEY`.
+
+### Raw SQL
+
+Sometimes you'll need to run complex SQL queries with joins and database
+specific magic, there is an extra package `sqlutil` that you could use in this
+situation:
+
+```go
+import "upper.io/db/util/sqlutil"
+```
+
+This is an example for `sqlutil.FetchRows`:
+
+```go
+  var sess db.Database
+  var rows *sql.Rows
+  var err error
+  var drv *sql.DB
+
+  type publication_t struct {
+    Id       int64  `db:"id,omitempty"`
+    Title    string `db:"title"`
+    AuthorId int64  `db:"author_id"`
+  }
+
+  if sess, err = db.Open(Adapter, settings); err != nil {
+    t.Fatal(err)
+  }
+
+  defer sess.Close()
+
+  drv = sess.Driver().(*sql.DB)
+
+  rows, err = drv.Query(`
+    SELECT
+      p.id,
+      p.title AS publication_title,
+      a.name AS artist_name
+    FROM
+      artist AS a,
+      publication AS p
+    WHERE
+      a.id = p.author_id
+  `)
+
+  if err != nil {
+    t.Fatal(err)
+  }
+
+  var all []publication_t
+
+  // Mapping to an array.
+  if err = sqlutil.FetchRows(rows, &all); err != nil {
+    t.Fatal(err)
+  }
+
+  if len(all) != 9 {
+    t.Fatalf("Expecting some rows.")
+  }
+```
+
+You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
+obtained from `sql.DB.Query()` statements to a pointer of a single struct
+instead of a pointer to an array of structs. Please note that there is no
+support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
+to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
 [1]: https://github.com/lib/pq
 [2]: http://www.postgresql.org/

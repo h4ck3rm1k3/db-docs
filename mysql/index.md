@@ -170,5 +170,145 @@ Nobuo Uematsu was born in March 21, 1959.
 Hironobu Sakaguchi was born in November 25, 1962.
 ```
 
+## Unique adapter features
+
+### Multiple sources
+
+Querying from multiple tables is possible using `db.Database.Collection()`,
+just pass the name of all the tables separating them by commas. You can also
+use the `AS` keyword to define an alias that you could later use in conditions
+to refer to the original table.
+
+```
+var err error
+var artistPublication db.Collection
+
+// Querying from two tables.
+artistPublication, err = sess.Collection(`artist AS a`, `publication AS p`)
+
+if err != nil {
+  log.Fatal(err)
+}
+
+res := artistPublication.Find(
+  // Use db.Raw{} to enclose statements that you'd like to pass without
+  // filtering.
+  db.Raw{`a.id = p.author_id`},
+).Select(
+  `p.id`, // We defined "p" as an alias for "publication".
+  `p.title as publication_title`, // The "AS" is recognized as column alias.
+  db.Raw{`a.name AS artist_name`},
+)
+
+type artistPublication_t struct {
+  Id               int64  `db:"id"`
+  PublicationTitle string `db:"publication_title"`
+  ArtistName       string `db:"artist_name"`
+}
+
+all := []artistPublication_t{}
+
+if err = res.All(&all); err != nil {
+  log.Fatal(err)
+}
+```
+
+If you're working with more than one collection, the first one you pass becomes
+your primary collection. Calls to `db.Collection.Append()`,
+`db.Collection.Remove()` and `db.Collection.Update()` will be performed on your
+primary collection.
+
+### Auto-incremental keys
+
+If you want to use auto-increment keys with a MySQL database,
+you must define the column type as `NOT NULL AUTO_INCREMENT`, like this:
+
+```sql
+CREATE TABLE foo(
+  id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),
+  title VARCHAR(255)
+);
+```
+
+Also, you must provide the `omitempty` option in the `db` tag when defining the
+struct:
+
+```go
+type Foo struct {
+  Id    int64   `db:"id,omitempty"`
+  Title string  `db:"title"`
+}
+```
+
+In order for the ID to be returned by `db.Collection.Append()`, the primary key
+must be named "id", this is a known limitation that will be fixed on future
+releases.
+
+### Raw SQL
+
+Sometimes you'll need to run complex SQL queries with joins and database
+specific magic, there is an extra package `sqlutil` that you could use in this
+situation:
+
+```go
+import "upper.io/db/util/sqlutil"
+```
+
+This is an example for `sqlutil.FetchRows`:
+
+```go
+  var sess db.Database
+  var rows *sql.Rows
+  var err error
+  var drv *sql.DB
+
+  type publication_t struct {
+    Id       int64  `db:"id,omitempty"`
+    Title    string `db:"title"`
+    AuthorId int64  `db:"author_id"`
+  }
+
+  if sess, err = db.Open(Adapter, settings); err != nil {
+    t.Fatal(err)
+  }
+
+  defer sess.Close()
+
+  drv = sess.Driver().(*sql.DB)
+
+  rows, err = drv.Query(`
+    SELECT
+      p.id,
+      p.title AS publication_title,
+      a.name AS artist_name
+    FROM
+      artist AS a,
+      publication AS p
+    WHERE
+      a.id = p.author_id
+  `)
+
+  if err != nil {
+    t.Fatal(err)
+  }
+
+  var all []publication_t
+
+  // Mapping to an array.
+  if err = sqlutil.FetchRows(rows, &all); err != nil {
+    t.Fatal(err)
+  }
+
+  if len(all) != 9 {
+    t.Fatalf("Expecting some rows.")
+  }
+```
+
+You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
+obtained from `sql.DB.Query()` statements to a pointer of a single struct
+instead of a pointer to an array of structs. Please note that there is no
+support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
+to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
+
 [1]: https://github.com/go-sql-driver/mysql
 [2]: http://www.mysql.com

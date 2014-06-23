@@ -18,6 +18,8 @@ import(
 As of today, `upper.io/db` fully supports MySQL, PostgreSQL and SQLite (CRUD +
 Transactions) and provides partial support for MongoDB and QL (CRUD only).
 
+The following code example pulls data from a collection into the people array.
+
 ```go
 // This code works the same for all supported databases.
 var people []Person
@@ -444,7 +446,7 @@ type Bar struct {
 You can use the `db.Collection.Find()` to define result sets, you can use a
 result set to search for the recently appended item. Result sets can be
 iterated (`db.Collection.Next()`), dumped to a pointer (`db.Result.One()`) or
-dumped to a pointer to slice (`db.Result.All()`).
+dumped to a pointer of array of items (`db.Result.All()`).
 
 ```go
 // SELECT * FROM people WHERE last_name = "Miyazaki"
@@ -454,8 +456,8 @@ res = col.Find(db.Cond{"last_name": "Miyazaki"})
 ## Retrieving objects (The R in CRUD)
 
 Once you have a result set (`res` in this example), you can choose to fetch
-results into a slice, providing a pointer to a slice of structs or maps, as in
-the following example.
+results into an array, providing a pointer to an array of structs or maps, as
+in the following example.
 
 ```go
 // Define birthdays as an array of Birthday{} and fetch the contents of the
@@ -464,9 +466,9 @@ var birthdays []Birthday
 err = res.All(&birthdays)
 ```
 
-Filling a slice could be expensive if you're working with a lot of rows, if you
-need to optimize memory usage for big result sets looping over the result set
-could be better, use `db.Result.Next()` to fetch one row at a time.
+Filling an array could be expensive if you're working with a lot of rows, if
+you need to optimize memory usage for big result sets looping over the result
+set could be better, use `db.Result.Next()` to fetch one row at a time.
 
 ```go
 var birthday Birhday
@@ -592,7 +594,7 @@ c, err := res.Count()
 ```
 
 this call will ignore `Offset` and `Limit` settings, so the returned result is
-the total size of the resultset.
+the total size of the result set.
 
 ## Closing result sets
 
@@ -796,7 +798,7 @@ This is an example for `sqlutil.FetchRows`:
 
 You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
 obtained from `sql.DB.Query()` statements to a pointer of a single struct
-instead of a pointer to a slice to structs. Please note that there is no
+instead of a pointer to an array of structs. Please note that there is no
 support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
 to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
