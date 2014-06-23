@@ -584,12 +584,15 @@ res = col.Find().Skip(10).Limit(8).Sort("-name")
 skips ten rows, counts up to eight rows and sorts the results by name
 (descendent).
 
-If you want to know how many rows the query will return, use the
-`db.Result.Count()` call.
+If you want to know how many items does the set holds, use the
+`db.Result.Count()` call:
 
 ```go
 c, err := res.Count()
 ```
+
+this call will ignore `Offset` and `Limit` settings, so the returned result is
+the total size of the resultset.
 
 ## Closing result sets
 
@@ -730,6 +733,72 @@ rows, err = drv.Query("SELECT name FROM users WHERE age=?", age)
 ```
 
 if you're using a SQL adapter.
+
+### Using sqlutil
+
+Sometimes you'll need to run complex SQL queries with joins and database
+specific magic, there is an extra package `sqlutil` that you could use in this
+situation:
+
+```go
+import "upper.io/db/util/sqlutil"
+```
+
+This is an example for `sqlutil.FetchRows`:
+
+```go
+  var sess db.Database
+  var rows *sql.Rows
+  var err error
+  var drv *sql.DB
+
+  type publication_t struct {
+    Id       int64  `db:"id,omitempty"`
+    Title    string `db:"title"`
+    AuthorId int64  `db:"author_id"`
+  }
+
+  if sess, err = db.Open(Adapter, settings); err != nil {
+    t.Fatal(err)
+  }
+
+  defer sess.Close()
+
+  drv = sess.Driver().(*sql.DB)
+
+  rows, err = drv.Query(`
+    SELECT
+      p.id,
+      p.title AS publication_title,
+      a.name AS artist_name
+    FROM
+      artist AS a,
+      publication AS p
+    WHERE
+      a.id = p.author_id
+  `)
+
+  if err != nil {
+    t.Fatal(err)
+  }
+
+  var all []publication_t
+
+  // Mapping to an array.
+  if err = sqlutil.FetchRows(rows, &all); err != nil {
+    t.Fatal(err)
+  }
+
+  if len(all) != 9 {
+    t.Fatalf("Expecting some rows.")
+  }
+```
+
+You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
+obtained from `sql.DB.Query()` statements to a pointer of a single struct
+instead of a pointer to a slice to structs. Please note that there is no
+support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
+to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
 ## Method reference
 
