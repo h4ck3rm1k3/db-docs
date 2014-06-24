@@ -28,9 +28,12 @@ res = col.Find(db.Cond{"name": "Max"}).Limit(2).Sort("-input")
 err = res.All(&people)
 ```
 
-`upper.io/db` is not and ORM, and thus it does not impose any hard restrictions
-on data structures nor automatic table creation, indexing or additional magic,
-so having a good understanding of the database you're working on is required.
+*Note*`: upper.io/db` is not a full-featured ORM, and thus it does not impose
+any hard restrictions on data structures nor automatic table creation, indexing
+or any additional magic, it just manages the most common operations so you can
+focus on the complex stuff, if you need to do some complicated database query
+you'll have to do it by hand, so having a good understanding of the database
+you're working on is required.
 
 This is the documentation site, you may also find useful information in the
 [source code repository][7] at [github][7].
