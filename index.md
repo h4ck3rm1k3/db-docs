@@ -484,7 +484,7 @@ you're working with big result sets looping over one result at a time would
 perform better. Use `db.Result.Next()` to fetch one row at a time:
 
 ```go
-var birthday Birhday
+var birthday Birthday
 for {
   // Walking over the result set.
   err = res.Next(&birthday)
@@ -507,7 +507,7 @@ If you need only one element of the result set, the `db.Result.One()` method
 could be better suited for the task.
 
 ```go
-var birthday Birhday
+var birthday Birthday
 err = res.One(&birthday)
 ```
 
