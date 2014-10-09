@@ -457,7 +457,7 @@ type Bar struct {
 }
 ```
 
-## Dealing with NULL values
+### Dealing with NULL values
 
 The `database/sql` package provides some special types
 ([NullBool](http://golang.org/pkg/database/sql/#NullBool),
@@ -477,7 +477,7 @@ type TestType struct {
 }
 ```
 
-## Marshaler and Unmarshaler interfaces
+### Marshaler and Unmarshaler interfaces
 
 The `upper.io/db` package provides two special interfaces that can be used to
 transform data before saving it into the database and to revert the
