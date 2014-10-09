@@ -4,39 +4,42 @@ The `upper.io/db` package for [Go][2] provides a single interface for
 interacting with different data sources through the use of adapters that wrap
 mature database drivers.
 
-Usage:
-
 ```go
 import(
-  // Main package.
+  // The db package.
   "upper.io/db"
-  // PostgreSQL adapter.
+  // The PostgreSQL adapter.
   "upper.io/db/postgresql"
 )
 ```
 
-As of today, `upper.io/db` fully supports MySQL, PostgreSQL and SQLite (CRUD +
-Transactions) and provides partial support for MongoDB and QL (CRUD only).
+As of today, `upper.io/db` fully supports MySQL, PostgreSQL, SQLite and QL
+(CRUD + Transactions) and provides partial support for MongoDB.
 
-The following code example pulls data from a collection and populates the
-`people` array with results of the query.
+The following code example shows how to query data from a collection and dump
+it into an array:
 
 ```go
-// This code works the same for all supported databases.
+// Declare our array of people.
 var people []Person
-res = col.Find(db.Cond{"name": "Max"}).Limit(2).Sort("-input")
+
+// Selecting a group of items named "Max".
+res = col.Find(db.Cond{"name": "Max"})
+
+// Dumping items into the people array.
 err = res.All(&people)
 ```
 
-`upper.io/db` is not a full-featured ORM, and thus it does not impose any hard
-restrictions on data structures nor automatic table creation, indexing or any
-additional magic, it just manages the most common operations so you can focus
-on the complex stuff, if you need to do some complicated database query you'll
-have to do it by hand, so having a good understanding of the database you're
-working on is required.
+`upper.io/db` is not at full-featured ORM: it does not impose any restrictions
+on how structures should be written nor provides table creation, migrations,
+index management or any additional magic; it just abstracts the most common
+operations so you can focus on the complex stuff rather on how the data is
+stored and retrieved. Whenever you need to do some complicated database query
+**you'll have to do it by hand**, so having a good understanding of the
+database you're working on is essential.
 
-This is the documentation site, you may also find useful information in the
-[source code repository][7] at [github][7].
+This is the documentation site of `upper.io/db`, you may also find useful
+information in the [source code repository][7] at [github][7].
 
 ## Required software
 
@@ -48,12 +51,12 @@ adapters.
 
 In order to use `go get` to fetch and install [Go][4] packages, you'll also
 need the [git][3] version control system. Please refer to the [git][3] project
-site for specific instructions on how to install it in your operative system.
+site for specific instructions on how to install it in your operating system.
 
 ### Installation
 
-Once you got [Go][4] installed, you can download and install the `upper.io/db`
-package using `go get`:
+Once you've installed [Go][4], you will be able to download and install the
+`upper.io/db` package using `go get`:
 
 ```sh
 go get upper.io/db
@@ -179,9 +182,9 @@ var settings = db.Settings{
 
 After configuring the database settings create a `main()` function and use
 `db.Open()` inside. This method creates a connection to a database using the
-given adapter. The first argument must be the adapter's name
-(`upper.io/db/$NAME`), the second one should be a `db.Settings{}` variable,
-such as the `settings` we've created above.
+given adapter. The first argument being the adapter's name
+(`upper.io/db/$NAME`), the second argument should be a `db.Settings{}`
+variable, such as the `settings` we've created above.
 
 ```go
 // Using db.Open() to open the sqlite database
@@ -195,7 +198,8 @@ reference.
 ## Working with collections
 
 Collections are sets of objects of the same class. SQL tables and NoSQL
-collections are both known as just "collections" in the `upper.io/db` context.
+collections are both known as just "collections" within the `upper.io/db`
+context.
 
 ### Getting a collection reference
 
@@ -452,6 +456,107 @@ type Bar struct {
   ExtraField  string `db:"extra_field"`
 }
 ```
+
+## Dealing with NULL values
+
+The `database/sql` package provides some special types
+([NullBool](http://golang.org/pkg/database/sql/#NullBool),
+[NullFloat64](http://golang.org/pkg/database/sql/#NullBool),
+[NullInt64](http://golang.org/pkg/database/sql/#NullInt64) and
+[NullString](http://golang.org/pkg/database/sql/#NullString)) that can be used
+to represent values than may be NULL at some point.
+
+The `postgresql`, `mysql`, `sqlite` and `ql` adapters support those special
+types and they work as expected:
+
+```go
+type TestType struct {
+  ...
+  salary sql.NullInt64
+  ...
+}
+```
+
+## Marshaler and Unmarshaler interfaces
+
+The `upper.io/db` package provides two special interfaces that can be used to
+transform data before saving it into the database and to revert the
+transformation when the data is retrieved.
+
+The `db.Marshaler` interface is defined as:
+
+```go
+type Marshaler interface {
+	MarshalDB() (interface{}, error)
+}
+```
+
+The `MarshalDB()` function should be used to transform the type's current value
+into a format that the database can accept and save.
+
+For instance, if you'd like to save a `time.Time` data as an unix timestamp
+(integer) instead of saving it as an string representation of the date, you
+should implement `MarshalDB()`.
+
+The `db.Unmarshaler` interface is defined as:
+
+```go
+type Unmarshaler interface {
+	UnmarshalDB(interface{}) error
+}
+```
+
+For instance if you'd like to transform the stored UNIX timestamp into a
+`time.Time` value, you should implement `UnmarshalDB()`.
+
+The `UnmarshalDB()` function should be used to transform a value that was
+retrieved from the database into a Go type.
+
+The following example defines a timeType struct that can handle dates using the
+native `time.Time` type. These dates are actually stored as integers (UNIX
+timestamp). The `MarshalDB()` and `UnmarshalDB()` functions work as opposite
+transformations.
+
+```go
+// Struct for testing marshalling.
+type timeType struct {
+	// Time is handled internally as time.Time but saved as an (integer) unix
+	// timestamp.
+	value time.Time
+}
+
+// time.Time -> unix timestamp
+func (u *timeType) MarshalDB() (interface{}, error) {
+	return u.value.Unix(), nil
+}
+
+// unix timestamp -> time.Time
+func (u *timeType) UnmarshalDB(v interface{}) error {
+	var i int
+
+	switch t := v.(type) {
+	case string:
+		i, _ = strconv.Atoi(t)
+	default:
+		return db.ErrUnsupportedValue
+	}
+
+	t := time.Unix(int64(i), 0)
+	*u = timeType{t}
+
+	return nil
+}
+
+// struct with a *timeType field.
+type birthday struct {
+  ...
+	BornUT *timeType `db:"born_ut"`
+  ...
+}
+```
+
+Currently, marshaling and unmarshaling is only available on `postgresql`,
+`mysql` and `sqlite` adapters.
 
 ## Working with result sets
 
