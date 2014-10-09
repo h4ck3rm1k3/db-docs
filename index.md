@@ -487,7 +487,7 @@ The `db.Marshaler` interface is defined as:
 
 ```go
 type Marshaler interface {
-	MarshalDB() (interface{}, error)
+  MarshalDB() (interface{}, error)
 }
 ```
 
@@ -502,7 +502,7 @@ The `db.Unmarshaler` interface is defined as:
 
 ```go
 type Unmarshaler interface {
-	UnmarshalDB(interface{}) error
+  UnmarshalDB(interface{}) error
 }
 ```
 
@@ -520,37 +520,37 @@ transformations.
 ```go
 // Struct for testing marshalling.
 type timeType struct {
-	// Time is handled internally as time.Time but saved as an (integer) unix
-	// timestamp.
-	value time.Time
+  // Time is handled internally as time.Time but saved
+  // as an (integer) unix timestamp.
+  value time.Time
 }
 
 // time.Time -> unix timestamp
 func (u *timeType) MarshalDB() (interface{}, error) {
-	return u.value.Unix(), nil
+  return u.value.Unix(), nil
 }
 
 // unix timestamp -> time.Time
 func (u *timeType) UnmarshalDB(v interface{}) error {
-	var i int
+  var i int
 
-	switch t := v.(type) {
-	case string:
-		i, _ = strconv.Atoi(t)
-	default:
-		return db.ErrUnsupportedValue
-	}
+  switch t := v.(type) {
+  case string:
+    i, _ = strconv.Atoi(t)
+  default:
+    return db.ErrUnsupportedValue
+  }
 
-	t := time.Unix(int64(i), 0)
-	*u = timeType{t}
+  t := time.Unix(int64(i), 0)
+  *u = timeType{t}
 
-	return nil
+  return nil
 }
 
 // struct with a *timeType field.
 type birthday struct {
   ...
-	BornUT *timeType `db:"born_ut"`
+  BornUT *timeType `db:"born_ut"`
   ...
 }
 ```
