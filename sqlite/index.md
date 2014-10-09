@@ -328,6 +328,24 @@ instead of a pointer to an array of structs. Please note that there is no
 support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
 to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
+### Using `db.Raw` and `db.Func`
+
+If you need to provide a raw parameter for a method you can use the `db.Raw`
+type. Plese note that raw means that the specified value won't be filtered:
+
+```go
+res = sess.Find().Select(db.Raw{`DISTINCT(name)`})
+```
+
+`db.Raw` also works for condition values.
+
+Another useful type that you could use to create an equivalent statement is
+`db.Func`:
+
+```go
+res = sess.Find().Select(db.Func{`DISTINCT`, `name`})
+```
+
 [1]: https://github.com/mattn/go-sqlite3
 [2]: http://golang.org/doc/effective_go.html#blank
 [3]: http://www.sqlite.org/

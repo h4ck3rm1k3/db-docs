@@ -126,7 +126,7 @@ After creating the table, type `.exit` to end the `sqlite3` session.
 sqlite> .exit
 ```
 
-### Connection setup
+### Setting up a database session
 
 Now you're ready to code. Create a `main.go` file and import both the
 `upper.io/db` and the recently installed adapter `upper.io/db/sqlite`:
@@ -457,6 +457,167 @@ type Bar struct {
 }
 ```
 
+## Working with result sets
+
+You can use the `db.Collection.Find()` to define result sets, you can use a
+result set to search for the recently appended item. Result sets can be
+iterated (`db.Collection.Next()`), dumped to a pointer (`db.Result.One()`) or
+dumped to a pointer of array of items (`db.Result.All()`).
+
+```go
+// SELECT * FROM people WHERE last_name = "Miyazaki"
+res = col.Find(db.Cond{"last_name": "Miyazaki"})
+```
+
+### Retrieving objects (The R in CRUD)
+
+Once you have a result set (`res` in this example), you can choose to fetch
+results into an array, providing a pointer to an array of structs or maps, as
+in the following example.
+
+```go
+// Define birthdays as an array of Birthday{} and fetch
+// the contents of the result set into it using
+// `db.Result.All()`.
+var birthdays []Birthday
+err = res.All(&birthdays)
+```
+
+Filling an array could be expensive if you're working with a lot of rows, if
+you're working with big result sets looping over one result at a time would
+perform better. Use `db.Result.Next()` to fetch one row at a time:
+
+```go
+var birthday Birthday
+for {
+  // Walking over the result set.
+  err = res.Next(&birthday)
+  if err == nil {
+    // No error happened.
+  } else if err == db.ErrNoMoreRows {
+    // Natural end of the result set.
+    break;
+  } else {
+    // Another kind of error, should be taken care of.
+    return res
+  }
+}
+// Remember to close the result set when using
+// db.Result.Next()
+res.Close()
+```
+
+If you need only one element of the result set, the `db.Result.One()` method
+could be better suited for the task.
+
+```go
+var birthday Birthday
+err = res.One(&birthday)
+```
+
+### Narrowing result sets
+
+Once you have a basic understanding of result sets, you can start using
+conditions, limits and offsets to reduce the amount of rows returned in a
+query.
+
+Use the `db.Cond{}` type to define conditions for `db.Collection.Find()`.
+
+```go
+type db.Cond map[string]interface{}
+```
+
+```go
+// SELECT * FROM users WHERE user_id = 1
+res = col.Find(db.Cond{"user_id": 1})
+```
+
+If you want to add multiple conditions just provide more keys to the
+`db.Cond{}` map:
+
+```go
+// SELECT * FROM users where user_id = 1
+//  AND email = "ser@example.org"
+res = col.Find(db.Cond{
+  "user_id": 1,
+  "email": "user@example.org",
+})
+```
+
+provided conditions will be grouped under an *AND* conjunction, by default.
+
+If you want to use an *OR* disjunction instead, the `db.Or{}` type is
+available. The following code:
+
+```go
+// SELECT * FROM users WHERE
+// email = "user@example.org"
+// OR email = "user@example.com"
+res = col.Find(db.Or{
+  db.Cond{
+    "email": "user@example.org",
+  },
+  db.Cond{
+    "email": "user@example.com",
+  }
+})
+```
+
+uses *OR* disjunction instead of *AND*.
+
+Complex *AND* filters can be delimited by the `db.And{}` type.
+
+This example:
+
+```go
+res = col.Find(db.And{
+  db.Or{
+    db.Cond{
+      "first_name": "Jhon",
+    },
+    db.Cond{
+      "first_name": "John",
+    },
+  },
+  db.Or{
+    db.Cond{
+      "last_name": "Smith",
+    },
+    db.Cond{
+      "last_name": "Smiht",
+    },
+  },
+})
+```
+
+means `(first_name = "Jhon" OR first_name = "John") AND (last_name = "Smith" OR
+last_name = "Smiht")`.
+
+### Result sets are chainable
+
+A `col.Find()` instruction returns a `db.Result{}` interface, and some methods of
+`db.Result{}` return the same interface, so they can be called in a chainable
+fashion.
+
+This example:
+
+```go
+res = col.Find().Skip(10).Limit(8).Sort("-name")
+```
+
+skips ten rows, counts up to eight rows and sorts the results by name
+(descendent).
+
+If you want to know how many items does the set hold, use the
+`db.Result.Count()` call:
+
+```go
+c, err := res.Count()
+```
+
+this call will ignore `Offset` and `Limit` settings, so the returned result is
+the total size of the result set.
+
 ### Dealing with NULL values
 
 The `database/sql` package provides some special types
@@ -558,168 +719,7 @@ type birthday struct {
 Currently, marshaling and unmarshaling is only available on `postgresql`,
 `mysql` and `sqlite` adapters.
 
-## Working with result sets
-
-You can use the `db.Collection.Find()` to define result sets, you can use a
-result set to search for the recently appended item. Result sets can be
-iterated (`db.Collection.Next()`), dumped to a pointer (`db.Result.One()`) or
-dumped to a pointer of array of items (`db.Result.All()`).
-
-```go
-// SELECT * FROM people WHERE last_name = "Miyazaki"
-res = col.Find(db.Cond{"last_name": "Miyazaki"})
-```
-
-## Retrieving objects (The R in CRUD)
-
-Once you have a result set (`res` in this example), you can choose to fetch
-results into an array, providing a pointer to an array of structs or maps, as
-in the following example.
-
-```go
-// Define birthdays as an array of Birthday{} and fetch
-// the contents of the result set into it using
-// `db.Result.All()`.
-var birthdays []Birthday
-err = res.All(&birthdays)
-```
-
-Filling an array could be expensive if you're working with a lot of rows, if
-you're working with big result sets looping over one result at a time would
-perform better. Use `db.Result.Next()` to fetch one row at a time:
-
-```go
-var birthday Birthday
-for {
-  // Walking over the result set.
-  err = res.Next(&birthday)
-  if err == nil {
-    // No error happened.
-  } else if err == db.ErrNoMoreRows {
-    // Natural end of the result set.
-    break;
-  } else {
-    // Another kind of error, should be taken care of.
-    return res
-  }
-}
-// Remember to close the result set when using
-// db.Result.Next()
-res.Close()
-```
-
-If you need only one element of the result set, the `db.Result.One()` method
-could be better suited for the task.
-
-```go
-var birthday Birthday
-err = res.One(&birthday)
-```
-
-## Narrowing result sets
-
-Once you have a basic understanding of result sets, you can start using
-conditions, limits and offsets to reduce the amount of rows returned in a
-query.
-
-Use the `db.Cond{}` type to define conditions for `db.Collection.Find()`.
-
-```go
-type db.Cond map[string]interface{}
-```
-
-```go
-// SELECT * FROM users WHERE user_id = 1
-res = col.Find(db.Cond{"user_id": 1})
-```
-
-If you want to add multiple conditions just provide more keys to the
-`db.Cond{}` map:
-
-```go
-// SELECT * FROM users where user_id = 1
-//  AND email = "ser@example.org"
-res = col.Find(db.Cond{
-  "user_id": 1,
-  "email": "user@example.org",
-})
-```
-
-provided conditions will be grouped under an *AND* conjunction, by default.
-
-If you want to use an *OR* disjunction instead, the `db.Or{}` type is
-available. The following code:
-
-```go
-// SELECT * FROM users WHERE
-// email = "user@example.org"
-// OR email = "user@example.com"
-res = col.Find(db.Or{
-  db.Cond{
-    "email": "user@example.org",
-  },
-  db.Cond{
-    "email": "user@example.com",
-  }
-})
-```
-
-uses *OR* disjunction instead of *AND*.
-
-Complex *AND* filters can be delimited by the `db.And{}` type.
-
-This example:
-
-```go
-res = col.Find(db.And{
-  db.Or{
-    db.Cond{
-      "first_name": "Jhon",
-    },
-    db.Cond{
-      "first_name": "John",
-    },
-  },
-  db.Or{
-    db.Cond{
-      "last_name": "Smith",
-    },
-    db.Cond{
-      "last_name": "Smiht",
-    },
-  },
-})
-```
-
-means `(first_name = "Jhon" OR first_name = "John") AND (last_name = "Smith" OR
-last_name = "Smiht")`.
-
-## Result sets are chainable
-
-A `col.Find()` instruction returns a `db.Result{}` interface, and some methods of
-`db.Result{}` return the same interface, so they can be called in a chainable
-fashion.
-
-This example:
-
-```go
-res = col.Find().Skip(10).Limit(8).Sort("-name")
-```
-
-skips ten rows, counts up to eight rows and sorts the results by name
-(descendent).
-
-If you want to know how many items does the set hold, use the
-`db.Result.Count()` call:
-
-```go
-c, err := res.Count()
-```
-
-this call will ignore `Offset` and `Limit` settings, so the returned result is
-the total size of the result set.
-
-## Closing result sets
+### Closing result sets
 
 When you're done using the result set, remember to close it.
 
@@ -753,14 +753,6 @@ result set.
 res = col.Find(db.Cond{"active": 0})
 
 res.Remove()
-```
-
-## Closing result sets
-
-Make sure to use `db.Result.Close()` when finishing using the result set.
-
-```go
-res.Close()
 ```
 
 ## Working with databases
