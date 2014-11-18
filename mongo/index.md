@@ -27,6 +27,33 @@ After bazaar is installed, use `go get` to download and install the adapter.
 go get upper.io/db/mongo
 ```
 
+## Setting up database access
+
+The `mongo.ConnectionURL{}` struct is defined like this:
+
+```go
+// ConnectionURL implements a MongoDB connection struct.
+type ConnectionURL struct {
+  User     string
+  Password string
+  Address  db.Address
+  Database string
+  Options  map[string]string
+}
+```
+
+The `db.Address` interface can be satisfied by the `db.Host()`,
+`db.HostPort()` or `db.Cluster()` functions.
+
+Alternatively, a `mongo.ParseURL()` function is provided:
+
+```go
+// ParseURL parses s into a ConnectionURL struct.
+mongo.ParseURL(s string) (ConnectionURL, error)
+```
+
+You may use `mongo.ConnectionURL` as argument for `db.Open()`.
+
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/mongo` packages.
@@ -44,11 +71,11 @@ import (
 Then, you can use the `db.Open()` method to connect to a MongoDB server:
 
 ```go
-var settings = db.Settings{
-  Host:     "localhost",  // MongoDB server IP or name.
-  Database: "peanuts",    // Database name.
-  User:     "cbrown",     // Optional user name.
-  Password: "snoopy",     // Optional user password.
+var settings = mongo.ConnectionURL{
+  Address:  db.Host("localhost"), // MongoDB hostname.
+  Database: "peanuts",            // Database name.
+  User:     "cbrown",             // Optional user name.
+  Password: "snoopy",             // Optional user password.
 }
 
 sess, err = db.Open(mongo.Adapter, settings)
@@ -72,9 +99,9 @@ import (
   "upper.io/db/mongo"   // Imports the mongo adapter.
 )
 
-var settings = db.Settings{
-  Database: `upperio_tests`, // Database name.
-  Host:     `127.0.0.1`,     // Using TCP.
+var settings = mongo.ConnectionURL{
+  Database: `upperio_tests`,        // Database name.
+  Address:   db.Host("127.0.0.1"),  // Host's IP.
 }
 
 type Birthday struct {

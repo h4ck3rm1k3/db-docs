@@ -33,6 +33,27 @@ sqlite adapter.
 go get upper.io/db/sqlite
 ```
 
+## Setting up database access
+
+The `sqlite.ConnectionURL{}` struct is defined like this:
+
+```go
+// ConnectionURL implements a SQLite connection struct.
+type ConnectionURL struct {
+	Database string
+	Options  map[string]string
+}
+```
+
+Alternatively, a `sqlite.ParseURL()` function is provided:
+
+```go
+// ParseURL parses s into a ConnectionURL struct.
+sqlite.ParseURL(s string) (ConnectionURL, error)
+```
+
+You may use `sqlite.ConnectionURL` as argument for `db.Open()`.
+
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/sqlite`
@@ -51,7 +72,7 @@ import (
 Then, you can use the `db.Open()` method to open a SQLite3 database file:
 
 ```go
-var settings = db.Settings{
+var settings = sqlite.ConnectionURL{
   Database: `/path/to/example.db`, // Path to a sqlite3 database file.
 }
 
@@ -98,7 +119,7 @@ import (
   "upper.io/db/sqlite"   // Imports the sqlite adapter.
 )
 
-var settings = db.Settings{
+var settings = sqlite.ConnectionURL{
   Database: `example.db`, // Path to database file.
 }
 

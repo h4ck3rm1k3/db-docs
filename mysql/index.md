@@ -13,6 +13,33 @@ Use `go get` to download and install the adapter:
 go get upper.io/db/mysql
 ```
 
+## Setting up database access
+
+The `mysql.ConnectionURL{}` struct is defined like this:
+
+```go
+// ConnectionURL implements a MySQL connection struct.
+type ConnectionURL struct {
+	User     string
+	Password string
+	Address  db.Address
+	Database string
+	Options  map[string]string
+}
+```
+
+The `db.Address` interface can be satisfied by the `db.Host()`,
+`db.HostPort()` or `db.Socket()` functions.
+
+Alternatively, a `mysql.ParseURL()` function is provided:
+
+```go
+// ParseURL parses s into a ConnectionURL struct.
+mysql.ParseURL(s string) (ConnectionURL, error)
+```
+
+You may use `mysql.ConnectionURL` as argument for `db.Open()`.
+
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/mysql` packages.
@@ -30,11 +57,11 @@ import (
 Then, you can use the `db.Open()` method to connect to a MySQL server:
 
 ```go
-var settings = db.Settings{
-  Host:     "localhost",  // MySQL server IP or name.
-  Database: "peanuts",    // Database name.
-  User:     "cbrown",     // Optional user name.
-  Password: "snoopy",     // Optional user password.
+var settings = mysql.ConnectionURL{
+  Address:	db.Host("localhost"), // MySQL server IP or name.
+  Database: "peanuts",						// Database name.
+  User:     "cbrown",							// Optional user name.
+  Password: "snoopy",							// Optional user password.
 }
 
 sess, err = db.Open(mysql.Adapter, settings)
@@ -77,11 +104,11 @@ import (
   "upper.io/db/mysql"   // Imports the mysql adapter.
 )
 
-var settings = db.Settings{
-  Database: `upperio_tests`,               // Database name
-  Socket:   `/var/run/mysqld/mysqld.sock`, // Using unix sockets.
-  User:     `upperio`,                     // Database username.
-  Password: `upperio`,                     // Database password.
+var settings = mysql.ConnectionURL{
+  Database: `upperio_tests`,														// Database name
+  Address:   db.Socket(`/var/run/mysqld/mysqld.sock`),	// Using unix sockets.
+  User:     `upperio`,																	// Database username.
+  Password: `upperio`,																	// Database password.
 }
 
 type Birthday struct {

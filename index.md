@@ -30,13 +30,13 @@ res = col.Find(db.Cond{"name": "Max"})
 err = res.All(&people)
 ```
 
-`upper.io/db` is not at full-featured ORM: it does not impose any restrictions
-on how structures should be written nor provides table creation, migrations,
-index management or any additional magic; it just abstracts the most common
-operations so you can focus on the complex stuff rather on how the data is
-stored and retrieved. Whenever you need to do some complicated database query
-**you'll have to do it by hand**, so having a good understanding of the
-database you're working on is essential.
+`upper.io/db` is *not* at full-featured ORM: it does not impose any
+restrictions or conventions on how structures should be written nor provides
+automatic table creation, migrations, index management or any additional magic;
+it just abstracts the most common operations so you're free to focus on the
+complex stuff rather on how the data is stored and retrieved. Whenever you need
+to do some complicated database query **you'll have to do it by hand**, so
+having a good understanding of the database you're working on is essential.
 
 This is the documentation site of `upper.io/db`, you may also find useful
 information in the [source code repository][7] at [github][7].
@@ -141,49 +141,31 @@ import (
 )
 ```
 
-Then, configure the database credentials using the `db.Settings{}` struct. This
-struct is used to store authentication settings that `db.Open()` will use to
-connect to a database:
+Then, configure the database credentials using the adapter's own
+`ConnectionURL{}` struct. In this case we'll be using the
+`sqlite.ConnectionURL`, its definition looks like this:
 
 ```go
-// Connection and authentication data.
-type Settings struct {
-  // Database server hostname or IP. Leave blank if
-  // using unix sockets.
-  Host string
-  // Database server port. Leave blank if using
-  // unix sockets.
-  Port int
-  // Name of the database.
+type ConnectionURL struct {
   Database string
-  // Username (for authentication).
-  User string
-  // Password (for authentication).
-  Password string
-  // A path of a UNIX socket file. Leave blank if
-  // using host and port.
-  Socket string
-  // Database charset.
-  Charset string
+  Options  map[string]string
 }
 ```
 
-In this example we'll be using a SQLite3 database with no authentication so
-most `db.Settings{}` fields like `User`, `Password` or `Hostname` are not
-required:
+Use `sqlite.ConnectionURL{}` to configure acces to your database:
 
 ```go
 # main.go
-var settings = db.Settings{
+var settings = sqlite.ConnectionURL{
   // A SQLite database is a plain file.
-  Database: `example.db`,
+  Database: `/path/to/example.db`,
 }
 ```
 
 After configuring the database settings create a `main()` function and use
 `db.Open()` inside. This method creates a connection to a database using the
 given adapter. The first argument being the adapter's name
-(`upper.io/db/$NAME`), the second argument should be a `db.Settings{}`
+(`upper.io/db/$NAME`), the second argument should be a `sqlite.ConnectionURL{}`
 variable, such as the `settings` we've created above.
 
 ```go
@@ -270,7 +252,7 @@ import (
   "upper.io/db/sqlite"
 )
 
-var settings = db.Settings{
+var settings = sqlite.ConnectionURL{
   Database: "test.db",
 }
 

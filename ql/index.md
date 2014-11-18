@@ -11,6 +11,28 @@ Use `go get` to download and install the adapter:
 go get upper.io/db/ql
 ```
 
+## Setting up database access
+
+The `ql.ConnectionURL{}` struct is defined like this:
+
+```go
+// ConnectionURL implements a SQLite connection struct.
+type ConnectionURL struct {
+	Database string
+	Options  map[string]string
+}
+```
+
+Alternatively, a `ql.ParseURL()` function is provided:
+
+```go
+// ParseURL parses s into a ConnectionURL struct.
+ql.ParseURL(s string) (ConnectionURL, error)
+```
+
+You may use `ql.ConnectionURL` as argument for `db.Open()`.
+
+
 ## Usage
 
 To use this adapter, import `upper.io/db` and the `upper.io/db/ql` packages.
@@ -28,7 +50,7 @@ import (
 Then, you can use the `db.Open()` method to open a QL database file:
 
 ```go
-var settings = db.Settings{
+var settings = ql.ConnectionURL{
   Database: `/path/to/example.db`, // Path to a QL database file.
 }
 
@@ -75,7 +97,7 @@ import (
   "upper.io/db/ql"   // Imports the ql adapter.
 )
 
-var settings = db.Settings{
+var settings = ql.ConnectionURL{
   Database: `example.db`, // Path to database file.
 }
 
