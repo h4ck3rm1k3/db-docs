@@ -1,8 +1,10 @@
 # upper.io/db
 
-The `upper.io/db` package for [Go][2] provides a single interface for
-interacting with different data sources through the use of adapters that wrap
+The `upper.io/db` package for [Go][2] provides a *common interface* for
+interacting with different data sources through the use of *adapters* that wrap
 mature database drivers.
+
+This is an example on how to include `upper.io/db` in your Go program:
 
 ```go
 import(
@@ -13,8 +15,9 @@ import(
 )
 ```
 
-As of today, `upper.io/db` fully supports MySQL, PostgreSQL, SQLite and QL
-(CRUD + Transactions) and provides partial support for MongoDB.
+As of today, `upper.io/db` fully supports the [MySQL][13], [PostgreSQL][14],
+[SQLite][15] and [QL][16] (SQL) databases and provides partial support for the
+[MongoDB][17] (NoSQL) database.
 
 The following code example shows how to query data from a collection and dump
 it into an array:
@@ -30,13 +33,13 @@ res = col.Find(db.Cond{"name": "Max"})
 err = res.All(&people)
 ```
 
-`upper.io/db` is *not* at full-featured ORM: it does not impose any
-restrictions or conventions on how structures should be written nor provides
-automatic table creation, migrations, index management or any additional magic;
-it just abstracts the most common operations so you're free to focus on the
-complex stuff rather on how the data is stored and retrieved. Whenever you need
-to do some complicated database query **you'll have to do it by hand**, so
-having a good understanding of the database you're working on is essential.
+`upper.io/db` is *not* a tyrannical ORM: it does not impose any restrictions or
+conventions on how structures should be written nor provides automatic table
+creation, migrations, index management or any additional magic; it just
+abstracts the most common operations so you're free to focus on the complex
+stuff rather on how the data is stored and retrieved. Whenever you need to do
+some complicated database query **you'll have to do it by hand**, so having a
+good understanding of the database you're working on is essential.
 
 This is the documentation site of `upper.io/db`, you may also find useful
 information in the [source code repository][7] at [github][7].
@@ -968,3 +971,8 @@ The MIT license:
 [10]: https://github.com/upper/db-docs/issues
 [11]: https://help.github.com/articles/fork-a-repo
 [12]: https://help.github.com/articles/fork-a-repo#pull-requests
+[13]: http://www.mysql.com/
+[14]: http://www.postgresql.org/
+[15]: http://www.sqlite.org/
+[16]: https://github.com/cznic/ql
+[17]: http://www.mongodb.org/
