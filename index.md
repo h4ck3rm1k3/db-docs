@@ -901,7 +901,7 @@ instead of a pointer to an array of structs. Please note that there is no
 support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
 to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
-## Method reference
+## See the technical documentation
 
 You can see the [full method reference][6] for `upper.io/db` at [godoc.org][6].
 
