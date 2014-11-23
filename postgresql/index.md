@@ -20,11 +20,11 @@ The `postgresql.ConnectionURL{}` struct is defined like this:
 ```go
 // ConnectionURL implements a PostgreSQL connection struct.
 type ConnectionURL struct {
-	User     string
-	Password string
-	Address  db.Address
-	Database string
-	Options  map[string]string
+  User     string
+  Password string
+  Address  db.Address
+  Database string
+  Options  map[string]string
 }
 ```
 
@@ -60,10 +60,10 @@ Then, you can use the `db.Open()` method to connect to a PostgreSQL server:
 
 ```go
 var settings = postgresql.ConnectionURL{
-	Address:    db.Host("localhost"), // PostgreSQL server IP or name.
-  Database:		"peanuts",						// Database name.
-  User:				"cbrown",							// Optional user name.
-  Password:		"snoopy",							// Optional user password.
+  Address:    db.Host("localhost"), // PostgreSQL server IP or name.
+  Database:   "peanuts",            // Database name.
+  User:       "cbrown",             // Optional user name.
+  Password:   "snoopy",             // Optional user password.
 }
 
 sess, err = db.Open(postgresql.Adapter, settings)
@@ -108,10 +108,10 @@ import (
 )
 
 var settings = postgresql.ConnectionURL{
-  Database: `upperio_tests`,														// Database name.
+  Database: `upperio_tests`,                            // Database name.
   Address:   postgresql.Socket(`/var/run/postgresql/`), // Using unix sockets.
-  User:     `upperio`,																	// Database username.
-  Password: `upperio`,																	// Database password.
+  User:     `upperio`,                                  // Database username.
+  Password: `upperio`,                                  // Database password.
 }
 
 type Birthday struct {

@@ -20,11 +20,11 @@ The `mysql.ConnectionURL{}` struct is defined like this:
 ```go
 // ConnectionURL implements a MySQL connection struct.
 type ConnectionURL struct {
-	User     string
-	Password string
-	Address  db.Address
-	Database string
-	Options  map[string]string
+  User     string
+  Password string
+  Address  db.Address
+  Database string
+  Options  map[string]string
 }
 ```
 
@@ -58,10 +58,10 @@ Then, you can use the `db.Open()` method to connect to a MySQL server:
 
 ```go
 var settings = mysql.ConnectionURL{
-  Address:	db.Host("localhost"), // MySQL server IP or name.
-  Database: "peanuts",						// Database name.
-  User:     "cbrown",							// Optional user name.
-  Password: "snoopy",							// Optional user password.
+  Address:  db.Host("localhost"), // MySQL server IP or name.
+  Database: "peanuts",            // Database name.
+  User:     "cbrown",             // Optional user name.
+  Password: "snoopy",             // Optional user password.
 }
 
 sess, err = db.Open(mysql.Adapter, settings)
@@ -105,10 +105,10 @@ import (
 )
 
 var settings = mysql.ConnectionURL{
-  Database: `upperio_tests`,														// Database name
-  Address:   db.Socket(`/var/run/mysqld/mysqld.sock`),	// Using unix sockets.
-  User:     `upperio`,																	// Database username.
-  Password: `upperio`,																	// Database password.
+  Database: `upperio_tests`,                            // Database name
+  Address:   db.Socket(`/var/run/mysqld/mysqld.sock`),  // Using unix sockets.
+  User:     `upperio`,                                  // Database username.
+  Password: `upperio`,                                  // Database password.
 }
 
 type Birthday struct {

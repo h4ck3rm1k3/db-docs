@@ -40,8 +40,8 @@ The `sqlite.ConnectionURL{}` struct is defined like this:
 ```go
 // ConnectionURL implements a SQLite connection struct.
 type ConnectionURL struct {
-	Database string
-	Options  map[string]string
+  Database string
+  Options  map[string]string
 }
 ```
 
