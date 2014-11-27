@@ -3,7 +3,8 @@
 The `upper.io/db/postgresql` adapter for [PostgreSQL][2] is based on the
 `github.com/lib/pq` driver by [Blake Mizerany][1].
 
-This adapter supports CRUD, transactions, multiple sources and raw SQL.
+This adapter supports basic CRUD queries, transactions, simple join queries and
+raw SQL.
 
 ## Installation
 
@@ -38,8 +39,7 @@ Alternatively, a `postgresql.ParseURL()` function is provided:
 postgresql.ParseURL(s string) (ConnectionURL, error)
 ```
 
-You may use `postgresql.ConnectionURL` as argument for `db.Open()`.
-
+You may use a `postgresql.ConnectionURL` value as argument for `db.Open()`.
 
 ## Usage
 
@@ -202,7 +202,7 @@ Hironobu Sakaguchi was born in November 25, 1962.
 
 ## Unique adapter features
 
-### Multiple sources
+### Simple JOIN queries
 
 Querying from multiple tables is possible using `db.Database.Collection()`,
 just pass the name of all the tables separating them by commas. You can also
@@ -340,10 +340,10 @@ This is an example for `sqlutil.FetchRows`:
 ```
 
 You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
-obtained from `sql.DB.Query()` statements to a pointer of a single struct
-instead of a pointer to an array of structs. Please note that there is no
-support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
-to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
+obtained from `sql.DB.Query()` calls to a pointer of a single struct instead of
+a pointer to an array of structs. Please note that there is no support for
+`sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value to both
+`sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
 ### Using `db.Raw` and `db.Func`
 
