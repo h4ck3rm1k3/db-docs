@@ -1,9 +1,10 @@
 # MySQL adapter for upper.io/db
 
-The `mysql` adapter for [MySQL][2] wraps the
-`github.com/go-sql-driver/mysql` driver written by [Julien Schmidt][1].
+The `mysql` adapter for [MySQL][2] wraps the `github.com/go-sql-driver/mysql`
+driver written by [Julien Schmidt][1].
 
-This adapter supports CRUD and transactions.
+This adapter supports basic CRUD queries, transactions, simple join queries and
+raw SQL.
 
 ## Installation
 
@@ -199,7 +200,7 @@ Hironobu Sakaguchi was born in November 25, 1962.
 
 ## Unique adapter features
 
-### Multiple sources
+### Simple JOIN queries
 
 Querying from multiple tables is possible using `db.Database.Collection()`,
 just pass the name of all the tables separating them by commas. You can also
@@ -228,7 +229,7 @@ res := artistPublication.Find(
 )
 
 type artistPublication_t struct {
-  Id               int64  `db:"id"`
+  ID               int64  `db:"id"`
   PublicationTitle string `db:"publication_title"`
   ArtistName       string `db:"artist_name"`
 }
@@ -262,7 +263,7 @@ struct:
 
 ```go
 type Foo struct {
-  Id    int64   `db:"id,omitempty"`
+  ID    int64   `db:"id,omitempty"`
   Title string  `db:"title"`
 }
 ```
@@ -290,9 +291,9 @@ This is an example for `sqlutil.FetchRows`:
   var drv *sql.DB
 
   type publication_t struct {
-    Id       int64  `db:"id,omitempty"`
+    ID       int64  `db:"id,omitempty"`
     Title    string `db:"title"`
-    AuthorId int64  `db:"author_id"`
+    AuthorID int64  `db:"author_id"`
   }
 
   if sess, err = db.Open(Adapter, settings); err != nil {

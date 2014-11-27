@@ -231,7 +231,7 @@ res := artistPublication.Find(
 )
 
 type artistPublication_t struct {
-  Id               int64  `db:"id"`
+  ID               int64  `db:"id"`
   PublicationTitle string `db:"publication_title"`
   ArtistName       string `db:"artist_name"`
 }
@@ -265,7 +265,7 @@ struct:
 
 ```go
 type Foo struct {
-  Id    int64   `db:"id,omitempty"`
+  ID    int64   `db:"id,omitempty"`
   Title string  `db:"title"`
 }
 ```
@@ -298,9 +298,9 @@ This is an example for `sqlutil.FetchRows`:
   var drv *sql.DB
 
   type publication_t struct {
-    Id       int64  `db:"id,omitempty"`
+    ID       int64  `db:"id,omitempty"`
     Title    string `db:"title"`
-    AuthorId int64  `db:"author_id"`
+    AuthorID int64  `db:"author_id"`
   }
 
   if sess, err = db.Open(Adapter, settings); err != nil {
