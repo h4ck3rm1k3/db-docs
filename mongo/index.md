@@ -1,7 +1,7 @@
 # MongoDB adapter for upper.io/db
 
 The `mongo` adapter for [MongoDB][3] wraps the `labix.org/v2/mgo`
-driver written by [Gustavo Niemeyer][1].
+driver by [Gustavo Niemeyer][1].
 
 This adapter supports CRUD but does not currently supports transactions.
 
@@ -42,8 +42,8 @@ type ConnectionURL struct {
 }
 ```
 
-The `db.Address` interface can be satisfied by the `db.Host()`,
-`db.HostPort()` or `db.Cluster()` functions.
+The `db.Address` interface can be satisfied by the `db.Host()`, `db.HostPort()`
+or `db.Cluster()` functions.
 
 Alternatively, a `mongo.ParseURL()` function is provided:
 
