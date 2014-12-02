@@ -333,10 +333,10 @@ This is an example for `sqlutil.FetchRows`:
 ```
 
 You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
-obtained from `sql.DB.Query()` statements to a pointer of a single struct
-instead of a pointer to an array of structs. Please note that there is no
-support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
-to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
+obtained from `sql.DB.Query()` calls to a pointer of a single struct instead of
+a pointer to an array of structs. Please note that there is no support for
+`sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value to both
+`sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
 ### Using `db.Raw` and `db.Func`
 

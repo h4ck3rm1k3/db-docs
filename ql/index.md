@@ -1,7 +1,7 @@
 # QL adapter for upper.io/db
 
 The `upper.io/db/ql` adapter for the [QL][1] is a wrapper of the
-`github.com/cznic/ql/ql` driver written by [Jan Mercl][1].
+`github.com/cznic/ql/ql` driver by [Jan Mercl][1].
 
 ## Installation
 
@@ -31,7 +31,6 @@ ql.ParseURL(s string) (ConnectionURL, error)
 ```
 
 You may use `ql.ConnectionURL` as argument for `db.Open()`.
-
 
 ## Usage
 
@@ -249,11 +248,10 @@ This is an example for `sqlutil.FetchRows`:
 ```
 
 You can also use `sqlutil.FetchRow(*sql.Rows, interface{})` for mapping results
-obtained from `sql.DB.Query()` statements to a pointer of a single struct
-instead of a pointer to an array of structs. Please note that there is no
-support for `sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value
-to both `sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
-
+obtained from `sql.DB.Query()` calls to a pointer of a single struct instead of
+a pointer to an array of structs. Please note that there is no support for
+`sql.DB.QueryRow()` and that you must provide a `*sql.Rows` value to both
+`sqlutil.FetchRow()` and `sqlutil.FetchRows()`.
 
 ### Using `db.Raw` and `db.Func`
 
