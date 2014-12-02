@@ -1,9 +1,10 @@
 # SQLite adapter for upper.io/db
 
 The `upper.io/db/sqlite` adapter for the [SQLite3 database][3] is a wrapper of
-the `github.com/mattn/go-sqlite3` driver written by [Yasuhiro Matsumoto][1].
+the `github.com/mattn/go-sqlite3` driver by [Yasuhiro Matsumoto][1].
 
-This adapter supports CRUD and transactions.
+This adapter supports basic CRUD queries, transactions, simple join queries and
+raw SQL.
 
 ## Installation
 
@@ -18,6 +19,9 @@ sudo apt-get install gcc
 sudo pkg install gcc
 sudo ln -s /usr/local/bin/gcc47 /usr/local/bin/gcc
 ```
+
+If you're on a Mac, you'll need [Xcode](https://developer.apple.com/xcode/) and
+the Command Line Tools.
 
 Otherwise, you'll end with an error like this:
 
@@ -211,7 +215,7 @@ Hironobu Sakaguchi was born in November 25, 1962.
 
 ## Unique adapter features
 
-### Multiple sources
+### Simple JOIN queries
 
 Querying from multiple tables is possible using `db.Database.Collection()`,
 just pass the name of all the tables separating them by commas. You can also
