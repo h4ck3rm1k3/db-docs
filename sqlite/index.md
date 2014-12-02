@@ -91,9 +91,9 @@ columns.
 ```sql
 --' example.sql
 
-DROP TABLE IF EXISTS "birthdays";
+DROP TABLE IF EXISTS "birthday";
 
-CREATE TABLE "birthdays" (
+CREATE TABLE "birthday" (
   "name" varchar(50) DEFAULT NULL,
   "born" varchar(12) DEFAULT NULL
 );
@@ -107,7 +107,7 @@ rm -f example.db
 cat example.sql | sqlite3 example.db
 ```
 
-The Go code below will add some rows to the "birthdays" table and then will
+The Go code below will add some rows to the "birthday" table and then will
 print the same rows that were inserted.
 
 ```go
@@ -128,9 +128,9 @@ var settings = sqlite.ConnectionURL{
 }
 
 type Birthday struct {
-  // Maps the "Name" property to the "name" column of the "birthdays" table.
+  // Maps the "Name" property to the "name" column of the "birthday" table.
   Name string `db:"name"`
-  // Maps the "Born" property to the "born" column of the "birthdays" table.
+  // Maps the "Born" property to the "born" column of the "birthday" table.
   Born time.Time `db:"born"`
 }
 
@@ -146,8 +146,8 @@ func main() {
   // Remember to close the database session.
   defer sess.Close()
 
-  // Pointing to the "birthdays" table.
-  birthdayCollection, err := sess.Collection("birthdays")
+  // Pointing to the "birthday" table.
+  birthdayCollection, err := sess.Collection("birthday")
 
   if err != nil {
     log.Fatalf("sess.Collection(): %q\n", err)
@@ -160,7 +160,7 @@ func main() {
     log.Fatalf("Truncate(): %q\n", err)
   }
 
-  // Inserting some rows into the "birthdays" table.
+  // Inserting some rows into the "birthday" table.
 
   birthdayCollection.Append(Birthday{
     Name: "Hayao Miyazaki",
@@ -182,17 +182,17 @@ func main() {
 
   res = birthdayCollection.Find()
 
-  var birthdays []Birthday
+  var birthday []Birthday
 
-  // Query all results and fill the birthdays variable with them.
-  err = res.All(&birthdays)
+  // Query all results and fill the birthday variable with them.
+  err = res.All(&birthday)
 
   if err != nil {
     log.Fatalf("res.All(): %q\n", err)
   }
 
   // Printing to stdout.
-  for _, birthday := range birthdays {
+  for _, birthday := range birthday {
     fmt.Printf("%s was born in %s.\n", birthday.Name, birthday.Born.Format("January 2, 2006"))
   }
 

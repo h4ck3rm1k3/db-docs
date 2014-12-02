@@ -456,11 +456,11 @@ results into an array, providing a pointer to an array of structs or maps, as
 in the following example.
 
 ```go
-// Define birthdays as an array of Birthday{} and fetch
+// Define birthday as an array of Birthday{} and fetch
 // the contents of the result set into it using
 // `db.Result.All()`.
-var birthdays []Birthday
-err = res.All(&birthdays)
+var birthday []Birthday
+err = res.All(&birthday)
 ```
 
 Filling an array could be expensive if you're working with a lot of rows, if
