@@ -453,7 +453,6 @@ Satisfying `IDSsetter` makes easier grabbing IDs from `col.Append()` calls and
 it also works on tables that support **composite keys**.
 
 ```go
-
 // Defining a Foo struct.
 type Foo struct {
   ID uint
@@ -471,7 +470,7 @@ func (f *Foo) SetID(values map[string]interface{}) error {
 }
 
 func Demo() {
-  ...
+  // ...
   foo := Foo{
     Bar: "Hello!",
   }
@@ -482,7 +481,7 @@ func Demo() {
   }
 
   fmt.Printf("The new ID is: %v\n", foo.ID)
-  ...
+  // ...
 }
 ```
 
@@ -520,7 +519,7 @@ func (f Foo) Constraint() db.Cond {
 }
 
 func Demo() {
-  ...
+  // ...
   var foo Foo
 
   // This anonymous Foo{} satisfies `db.Constrainer`.
@@ -533,7 +532,7 @@ func Demo() {
   }
 
   fmt.Printf("The value of foo is: %v\n", foo)
-  ...
+  // ...
 }
 ```
 
