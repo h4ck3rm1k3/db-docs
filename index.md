@@ -436,6 +436,106 @@ type Bar struct {
 }
 ```
 
+### Optional: The `db.IDSetter` interface
+
+An optional `db.IDSetter` interface that could be satisfied by data structs is
+defined as follows:
+
+```go
+// IDSetter is the interface implemented by structs that can set
+// their own ID after calling Append().
+type IDSetter interface {
+  SetID(map[string]interface{}) error
+}
+```
+
+Satisfying `IDSsetter` makes easier grabbing IDs from `col.Append()` calls and
+it also works on tables that support **composite keys**.
+
+```go
+
+// Defining a Foo struct.
+type Foo struct {
+  ID uint
+  Bar string
+}
+
+// The values map uses all the columns that compose a primary index as keys
+// mapped to their new values.
+func (f *Foo) SetID(values map[string]interface{}) error {
+  if valueInterface, ok := values["id"]; ok {
+    // A conversion from interface{} is required.
+    f.ID = valueInterface.(int64)
+  }
+  return nil
+}
+
+func Demo() {
+  ...
+  foo := Foo{
+    Bar: "Hello!",
+  }
+
+  // Note that were passing a pointer of foo.
+  if _, err := col.Append(&foo); err != nil {
+    // Handle error.
+  }
+
+  fmt.Printf("The new ID is: %v\n", foo.ID)
+  ...
+}
+```
+
+### Optional: The `db.Constrainer` interface
+
+The `db.Constrainer` interface is intended to be used on `db.Find()` calls to
+let the struct that satisfies the interface constraint itself using a
+condition.
+
+```go
+// Constrainer is the interface implemented by structs that
+// can delimit themselves.
+type Constrainer interface {
+  Constraint() Cond
+}
+```
+
+This is an usage example:
+
+```go
+
+// Defining a Foo struct.
+type Foo struct {
+  ID uint
+  Bar string
+}
+
+// Foo will try to constraint itself to all the rows that
+// satisfy the id = f.ID condition (probably just one, if
+// "id" is a primary key).
+func (f Foo) Constraint() db.Cond {
+  cond := db.Cond{
+    "id": f.ID,
+  }
+  return cond
+}
+
+func Demo() {
+  ...
+  var foo Foo
+
+  // This anonymous Foo{} satisfies `db.Constrainer`.
+  res := col.Find(Foo{ID: 42})
+
+  if err := res.One(&foo); err != nil {
+    // Handle error.
+  }
+
+  fmt.Printf("The value of foo is: %v\n", foo)
+  ...
+}
+```
+
 ## Working with result sets
 
 You can use the `db.Collection.Find()` to define a result sets.
@@ -700,106 +800,6 @@ type birthday struct {
 
 **Note:** Currently, marshaling and unmarshaling are only available on the
 `postgresql`, `mysql` and `sqlite` adapters.
-
-### The `db.IDSetter` interface
-
-An optional `db.IDSetter` interface that could be satisfied by data structs is
-defined as follows:
-
-```go
-// IDSetter is the interface implemented by structs that can set
-// their own ID after calling Append().
-type IDSetter interface {
-  SetID(map[string]interface{}) error
-}
-```
-
-Satisfying `IDSsetter` makes easier grabbing IDs from `col.Append()` calls and
-it also works on tables that support **composite keys**.
-
-```go
-
-// Defining a Foo struct.
-type Foo struct {
-  ID uint
-  Bar string
-}
-
-// The values map uses all the columns that compose a primary index as keys
-// mapped to their new values.
-func (f *Foo) SetID(values map[string]interface{}) error {
-  if valueInterface, ok := values["id"]; ok {
-    // A conversion from interface{} is required.
-    f.ID = valueInterface.(int64)
-  }
-  return nil
-}
-
-func Demo() {
-  ...
-  foo := Foo{
-    Bar: "Hello!",
-  }
-
-  // Note that were passing a pointer of foo.
-  if _, err := col.Append(&foo); err != nil {
-    // Handle error.
-  }
-
-  fmt.Printf("The new ID is: %v\n", foo.ID)
-  ...
-}
-```
-
-### The `db.Constrainer` interface
-
-The `db.Constrainer` interface is intended to be used on `db.Find()` calls to
-let the struct that satisfies the interface constraint itself using a
-condition.
-
-```go
-// Constrainer is the interface implemented by structs that
-// can delimit themselves.
-type Constrainer interface {
-  Constraint() Cond
-}
-```
-
-This is an usage example:
-
-```go
-
-// Defining a Foo struct.
-type Foo struct {
-  ID uint
-  Bar string
-}
-
-// Foo will try to constraint itself to all the rows that
-// satisfy the id = f.ID condition (probably just one, if
-// "id" is a primary key).
-func (f Foo) Constraint() db.Cond {
-  cond := db.Cond{
-    "id": f.ID,
-  }
-  return cond
-}
-
-func Demo() {
-  ...
-  var foo Foo
-
-  // This anonymous Foo{} satisfies `db.Constrainer`.
-  res := col.Find(Foo{ID: 42})
-
-  if err := res.One(&foo); err != nil {
-    // Handle error.
-  }
-
-  fmt.Printf("The value of foo is: %v\n", foo)
-  ...
-}
-```
 
 ### Closing result sets
 
