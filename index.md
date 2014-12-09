@@ -460,8 +460,8 @@ type Foo struct {
   Bar string
 }
 
-// The values map uses all the columns that compose a primary index as keys
-// mapped to their new values.
+// The values map uses all the columns that compose a primary index
+// as keys mapped to their new values.
 func (f *Foo) SetID(values map[string]interface{}) error {
   if valueInterface, ok := values["id"]; ok {
     // A conversion from interface{} is required.
@@ -503,7 +503,6 @@ type Constrainer interface {
 This is an usage example:
 
 ```go
-
 // Defining a Foo struct.
 type Foo struct {
   ID uint
