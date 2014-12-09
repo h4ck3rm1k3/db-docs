@@ -526,6 +526,8 @@ func Demo() {
   // This anonymous Foo{} satisfies `db.Constrainer`.
   res := col.Find(Foo{ID: 42})
 
+  // One() will use the contraint already set in place
+  // by Find() and Foo{}.
   if err := res.One(&foo); err != nil {
     // Handle error.
   }
