@@ -191,7 +191,29 @@ Nobuo Uematsu was born in March 21, 1959.
 Hironobu Sakaguchi was born in November 25, 1962.
 ```
 
+## Custom ID Setter
+
+This driver implements the canonical [IDSetter][5] interface but it also
+implements the more specific [ObjectIdIDSetter][6] that you could use with an
+struct like this:
+
+```go
+type artistWithObjectIdKey struct {
+	id   bson.ObjectId
+	Name string
+}
+
+// This SetID() will be called after a successful Append().
+func (artist *artistWithObjectIdKey) SetID(id bson.ObjectId) error {
+	artist.id = id
+	return nil
+}
+```
+
 [1]: http://labix.org/v2/mgo
 [2]: http://bazaar.canonical.com/en/
 [3]: http://www.mongodb.org/
 [4]: http://labix.org/gobson
+[5]: http://godoc.org/upper.io/db#IDSetter
+[6]: http://godoc.org/upper.io/db/mongo#ObjectIdIDSetter
+

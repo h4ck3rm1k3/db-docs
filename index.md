@@ -486,9 +486,9 @@ type Bar struct {
 }
 ```
 
-### Optional: The `db.IDSetter` interface
+### Optional: The [db.IDSetter][30] interface
 
-An optional `db.IDSetter` interface that could be satisfied by data structs is
+An optional [db.IDSetter][30] interface that could be satisfied by data structs is
 defined as follows:
 
 ```go
@@ -534,6 +534,30 @@ func Demo() {
   // ...
 }
 ```
+
+### Optional: Custom ID setters for common key patterns
+
+The [db.IDSetter][30] interface may work great for tables with multiple keys,
+but it feels a bit awkward for tables with a single integer key.
+
+In this case, you may want to use the [db.Int64IDSetter][31] or the
+[db.Uint64IDSetter][32] interfaces that will send you the ID with type int64 or
+uint64.
+
+```go
+type artistWithInt64Key struct {
+  id   int64
+  Name string `db:"name"`
+}
+
+// This SetID() will be called after a successful Append().
+func (artist *artistWithInt64Key) SetID(id int64) error {
+  artist.id = id
+  return nil
+}
+```
+
+This feature is supported in the PostgreSQL, MySQL and SQLite adapters.
 
 ### Optional: The [db.Constrainer][24] interface
 
@@ -1140,4 +1164,6 @@ The MIT license:
 [27]: http://godoc.org/upper.io/db#Marshaler
 [28]: http://godoc.org/upper.io/db#Unmarshaler
 [29]: http://godoc.org/upper.io/db#Tx
-
+[30]: http://godoc.org/upper.io/db#IDSetter
+[31]: http://godoc.org/upper.io/db#Int64IDSetter
+[32]: http://godoc.org/upper.io/db#Uint64IDSetter
