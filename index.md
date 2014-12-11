@@ -14,8 +14,8 @@ import(
 ```
 
 As of today, `upper.io/db` supports the [MySQL][13], [PostgreSQL][14],
-[SQLite][15] and [QL][16] (SQL) databases and provides partial support for the
-[MongoDB][17] (NoSQL) database.
+[SQLite][15] and [QL][16] (SQL) database management systems (DBMS) and provides
+partial support for [MongoDB][17].
 
 The following code example shows how to query data from a collection and dump
 it into an array:
