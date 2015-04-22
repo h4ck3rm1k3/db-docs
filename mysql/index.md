@@ -341,7 +341,7 @@ a pointer to an array of structs. Please note that there is no support for
 ### Using `db.Raw` and `db.Func`
 
 If you need to provide a raw parameter for a method you can use the `db.Raw`
-type. Plese note that raw means that the specified value won't be filtered:
+type. Please note that raw means that the specified value won't be filtered:
 
 ```go
 res = sess.Find().Select(db.Raw{`DISTINCT(name)`})
